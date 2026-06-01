@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>像素游戏进阶 · 第十一课（完结）</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0e1018; --bg2:#161a28; --ink:#e7e3d8; --dim:#8a8fa3; --line:#2a2f44;
+    --red:#ff3b6b; --orange:#ff9d3c; --green:#3ee07a; --blue:#3fb6ff; --teal:#4fd6e0;
+    --purple:#c177f2; --pink:#ff5fa2; --gold:#e0b341; --sky:#4aa3ff; --fx:#ff5a2b;
+    --env:#5fbf6f; --eng:#4d7cff; --fin:#ffc24d; --shadow:#05060b;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"VT323","PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;
+    line-height:1.85;font-size:21px;-webkit-font-smoothing:antialiased;position:relative;
+    background-image:
+      radial-gradient(circle at 18% -10%, rgba(255,194,77,.13), transparent 45%),
+      radial-gradient(circle at 90% 8%, rgba(193,119,242,.08), transparent 40%);}
+  body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:9999;
+    background:repeating-linear-gradient(0deg, rgba(0,0,0,.10) 0 1px, transparent 1px 3px);
+    mix-blend-mode:multiply;opacity:.5;}
+  .pix{font-family:"Press Start 2P",monospace;}
+  .wrap{max-width:780px;margin:0 auto;padding:0 22px 90px;}
+  header{padding:64px 22px 40px;max-width:780px;margin:0 auto;border-bottom:3px solid var(--line);}
+  .badge{display:inline-block;font-family:"Press Start 2P",monospace;font-size:10px;
+    color:var(--bg);background:var(--fin);padding:8px 12px;letter-spacing:1px;
+    box-shadow:4px 4px 0 var(--shadow);margin-bottom:26px;}
+  h1.title{font-family:"Press Start 2P",monospace;font-size:22px;line-height:1.6;
+    margin:0 0 18px;color:var(--ink);text-shadow:3px 3px 0 var(--shadow);}
+  h1.title .cn{display:block;font-size:30px;line-height:1.5;margin-top:14px;
+    font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;font-weight:800;
+    letter-spacing:2px;color:var(--orange);text-shadow:2px 2px 0 var(--shadow);}
+  .lede{color:var(--dim);font-size:22px;margin-top:6px;}
+  section{padding:44px 0 6px;border-bottom:2px dashed var(--line);}
+  .kicker{font-family:"Press Start 2P",monospace;font-size:11px;letter-spacing:1px;
+    color:var(--fin);display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+  .kicker::before{content:"";width:26px;height:11px;background:var(--fin);display:inline-block;}
+  h2{font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;
+    font-weight:800;font-size:30px;margin:0 0 8px;letter-spacing:1px;}
+  p{margin:14px 0;} .dim{color:var(--dim);} b,strong{color:var(--orange);font-weight:700;}
+  .tag{background:var(--bg2);border:2px solid var(--line);padding:1px 9px;
+    font-family:"Press Start 2P",monospace;font-size:11px;color:var(--fin);white-space:nowrap;}
+  code{font-family:"VT323",monospace;background:var(--bg2);border:1px solid var(--line);
+    padding:0 6px;color:var(--teal);font-size:19px;}
+  .callout{background:var(--bg2);border-left:5px solid var(--green);padding:14px 18px;margin:20px 0;
+    box-shadow:4px 4px 0 var(--shadow);font-size:20px;}
+
+  .lab{background:var(--bg2);border:3px solid var(--line);box-shadow:8px 8px 0 var(--shadow);
+    margin:30px 0;overflow:hidden;}
+  .lab-top{background:linear-gradient(90deg,var(--line),transparent);padding:12px 16px;
+    display:flex;align-items:center;gap:10px;font-family:"Press Start 2P",monospace;
+    font-size:11px;color:var(--ink);border-bottom:3px solid var(--line);}
+  .dot{width:11px;height:11px;background:var(--red);box-shadow:16px 0 0 var(--orange),32px 0 0 var(--green);}
+  .lab-body{padding:24px 18px 26px;}
+  .pipe{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;align-items:center;}
+  .step{display:flex;flex-direction:column;align-items:center;gap:8px;}
+  .step canvas{image-rendering:pixelated;border:3px solid var(--line);box-shadow:4px 4px 0 var(--shadow);background:#0a0a10;}
+  .step .nm{font-family:"Press Start 2P",monospace;font-size:9px;text-align:center;line-height:1.5;}
+  .arrow{font-family:"Press Start 2P",monospace;font-size:14px;color:var(--fin);}
+  .n1{color:var(--red);} .n2{color:var(--sky);} .n3{color:var(--green);}
+
+  .recap{background:linear-gradient(135deg,var(--bg2),#1d160a);border:3px solid var(--fin);
+    box-shadow:8px 8px 0 var(--shadow);padding:26px 22px;margin:30px 0;}
+  .recap h3{font-family:"Press Start 2P",monospace;font-size:13px;color:var(--fin);margin:0 0 6px;}
+  .recap .arc{font-family:"Press Start 2P",monospace;font-size:9px;color:var(--dim);margin:18px 0 8px;letter-spacing:1px;}
+  .recap ol{margin:0;padding:0;list-style:none;counter-reset:l;}
+  .recap li{padding:6px 0;border-bottom:1px dashed var(--line);display:flex;gap:12px;align-items:baseline;}
+  .recap li b{font-family:"Press Start 2P",monospace;font-size:11px;min-width:26px;}
+  .recap .t{color:var(--ink);} .recap .d{color:var(--dim);font-size:18px;}
+
+  .fin-card{background:linear-gradient(135deg,#1d160a,#241024);border:3px solid var(--fin);
+    box-shadow:8px 8px 0 var(--shadow);padding:30px 24px;margin-top:34px;text-align:center;}
+  .fin-card h3{font-family:"Press Start 2P",monospace;font-size:16px;color:var(--fin);margin:0 0 18px;line-height:1.6;}
+  .chips{display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin:18px 0;}
+  .chips span{font-family:"Press Start 2P",monospace;font-size:9px;padding:7px 9px;border:2px solid var(--line);background:var(--bg);}
+  footer{max-width:780px;margin:0 auto;padding:34px 22px;color:var(--dim);font-size:16px;text-align:center;}
+  .pjump{font-family:"Press Start 2P",monospace;font-size:9px;color:var(--fin);}
+</style>
+</head>
+<body>
+
+<header>
+  <span class="badge">LESSON 11 · FINALE</span>
+  <h1 class="title">SHIP IT<span class="cn">进阶 · 工作流与收尾</span></h1>
+  <p class="lede">最后一课：实战工作流，以及 AI 到底该放在流程哪一环——绕回你最开始的问题。</p>
+</header>
+
+<div class="wrap">
+
+  <!-- 01 -->
+  <section>
+    <div class="kicker">CONCEPT 01 — ASEPRITE WORKFLOW</div>
+    <h2>Aseprite 进阶工作流</h2>
+    <p>会画之后，效率全在工具用法。Aseprite 里几个让你事半功倍的功能：</p>
+    <p class="dim"><b>图层（Layers）</b>分离草稿/线稿/上色/特效，方便单独改；<b>帧标签（Tags）</b>给"走路""攻击""待机"各自命名区间，导出时按标签分段；<b>切片（Slices）</b>标出 UI 九宫格、命中框；<b>Tileset 模式</b>直接在 Aseprite 里画瓦片并自动去重；最后 <b>导出精灵表（Export Sprite Sheet）</b>一键打包成图集 + JSON 帧数据。进阶玩家还能用 <b>Lua 脚本</b>批处理、用 <b>命令行（CLI）</b>把导出接进自动化流水线。</p>
+  </section>
+
+  <!-- 02 -->
+  <section>
+    <div class="kicker">CONCEPT 02 — ASSET PIPELINE</div>
+    <h2>素材管理与导出</h2>
+    <p>项目一大，<b>命名和组织</b>就是生死线。几条务实规矩：</p>
+    <p class="dim">统一命名 <code>player_walk_01</code> 这种 <b>对象_动作_序号</b> 格式；一套<b>共享调色板文件</b>（.gpl/.pal）全项目复用，保证色调统一（呼应第五课）；源文件（.aseprite）和导出图（.png）分开存，<b>导出脚本化</b>避免手动出错；所有素材进 <b>Git/版本控制</b>——.aseprite 是二进制，配合 LFS。一句话：<b>让"改一个像素 → 重新进游戏"这条链路尽量一键化</b>。</p>
+  </section>
+
+  <!-- 03 -->
+  <section>
+    <div class="kicker">CONCEPT 03 — WHERE AI FITS</div>
+    <h2>AI 在流程的哪一环</h2>
+    <p>绕回第一节课前你问的：AI 生成的"伪像素图"边缘糊、颜色脏。学完这一路，答案很清楚了——<b>AI 适合出草稿/找灵感，不适合直接交付</b>。正确位置是流程的<b>最前端</b>：</p>
+    <div class="lab">
+      <div class="lab-top"><span class="dot"></span><span style="margin-left:38px">PIPELINE.exe</span></div>
+      <div class="lab-body">
+        <div class="pipe">
+          <div class="step"><canvas id="s1" width="180" height="180"></canvas><div class="nm n1">① AI 草稿<br>糊·脏·没对齐</div></div>
+          <div class="arrow">▶</div>
+          <div class="step"><canvas id="s2" width="180" height="180"></canvas><div class="nm n2">② 算法清洗<br>对齐+量化</div></div>
+          <div class="arrow">▶</div>
+          <div class="step"><canvas id="s3" width="180" height="180"></canvas><div class="nm n3">③ 手工精修<br>描边+去杂</div></div>
+        </div>
+      </div>
+    </div>
+    <p class="dim">① <b>AI 草稿</b>：给个构图和配色方向，几秒出一张——但放大就是糊边、杂色、网格没对齐（就是你当初看到的）。② <b>算法清洗</b>：用我们第一次聊的脚本（最佳偏移降采样 + 调色板量化）把它<b>抢救成网格对齐的纯色像素</b>。③ <b>手工精修</b>：人来补干净的轮廓、清掉残留杂点、按这十一课的审美调明暗——这一步<b>机器替不了</b>，也是作品有没有"灵魂"的分水岭。</p>
+    <div class="callout"><b>结论</b>：把 AI 当"会画草稿的实习生"，算法当"自动清理工", 你自己当"美术总监"。最终拍板和精修永远是你。能省的是体力，省不了的是品味。</div>
+  </section>
+
+  <!-- 04 -->
+  <section>
+    <div class="kicker">CONCEPT 04 — LICENSE &amp; MINDSET</div>
+    <h2>版权与心态</h2>
+    <p>两点提醒收个尾。<b>版权</b>：商用前确认每一环的授权——AI 模型的输出条款、参考图来源、调色板/字体/工具的许可（比如某些开源像素工具的 license 限制商用，用前看清）。<b>心态</b>：像素画的门槛在"看懂"，精通在"手熟"。这十一课给了你完整的判断框架，但真正长本事的是——<b>去画</b>。</p>
+    <div class="recap">
+      <h3>✦ 全课地图 · 11 LESSONS</h3>
+      <div class="arc">━━ 基础篇 ━━</div>
+      <ol>
+        <li><b>01</b><span><span class="t">像素的本质</span> <span class="d">· 分辨率 · 整数缩放 · 调色板</span></span></li>
+        <li><b>02</b><span><span class="t">体积与光</span> <span class="d">· 剪影 · 轮廓 · 明暗 · 抖动</span></span></li>
+        <li><b>03</b><span><span class="t">动画</span> <span class="d">· 帧 · 帧率 · 洋葱皮 · 防沸腾</span></span></li>
+        <li><b>04</b><span><span class="t">瓦片世界</span> <span class="d">· 无缝拼接 · 自动连接 · 分层</span></span></li>
+      </ol>
+      <div class="arc">━━ 进阶 · 精修 ━━</div>
+      <ol>
+        <li><b>05</b><span><span class="t">色相偏移</span> <span class="d">· 色阶 · 有限调色板</span></span></li>
+        <li><b>06</b><span><span class="t">材质</span> <span class="d">· 高光 · 对比 · 抗锯齿</span></span></li>
+        <li><b>07</b><span><span class="t">行走循环</span> <span class="d">· 重量 · 对侧 · 跟随</span></span></li>
+        <li><b>08</b><span><span class="t">特效</span> <span class="d">· 节奏 · 发光 · 粒子</span></span></li>
+        <li><b>09</b><span><span class="t">场景氛围</span> <span class="d">· 分层 · 视差 · 大气透视</span></span></li>
+      </ol>
+      <div class="arc">━━ 进阶 · 落地 ━━</div>
+      <ol>
+        <li><b>10</b><span><span class="t">进引擎</span> <span class="d">· 整数缩放 · 像素完美 · 图集</span></span></li>
+        <li><b>11</b><span><span class="t">工作流</span> <span class="d">· AI 定位 · 收尾</span></span></li>
+      </ol>
+    </div>
+  </section>
+
+  <!-- finale -->
+  <div class="fin-card">
+    <h3>✦ 全部课程完结 ✦<br>PIXEL ART · COMPLETE</h3>
+    <div class="chips">
+      <span style="color:var(--green)">基础 ×4</span>
+      <span style="color:var(--pink)">精修 ×5</span>
+      <span style="color:var(--eng)">落地 ×2</span>
+    </div>
+    <p class="dim" style="margin:0">下一步只有一件事：<b style="color:var(--fin)">打开 Aseprite，画一个 16×16 的小东西</b>。画完丢进 Godot 让它动起来。理论已经够了，剩下的是手感。</p>
+    <p class="dim" style="margin:16px 0 0">想深挖任何一块（具体角色攻击动画、某引擎实操、或把 AI 清洗脚本接进你的流程），随时找我。</p>
+  </div>
+
+</div>
+
+<footer>
+  <span class="pjump">PIXEL ADVANCED · 11 · SERIES COMPLETE</span><br>
+  从"AI 图为什么糊"问到"自己能画一整个游戏世界"——这一路，你走完了 ✦
+</footer>
+
+<script>
+/* ===== 干净源精灵：16×16 史莱姆（呼应第一课）===== */
+const SP=[
+  "................","................","......oooo......","....oohhhhoo....",
+  "...ohhbbbbhho...","..obbbbbbbbbbo..",".obbbbbbbbbbbbo.",".obbwwbbbbwwbbo.",
+  "obbwwwbbbbwwwbbo","obbwpwbbbbwpwbbo","obbwwwbbbbwwwbbo","obbbbbbbbbbbbbbo",
+  "obbbbbbbbbbbbbbo",".obbbbbbbbbbbbo.","..oobbbbbbbboo..","....oooooooo...."];
+const KEY={'.':0,'o':1,'b':2,'h':3,'w':4,'p':5};
+const PALH=[null,'#15402b','#37b24d','#69db7c','#ffffff','#1b2a1f'];
+const PAL=PALH.map(h=>h?[parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)]:null);
+const N=16, GRID=SP.map(r=>[...r].map(c=>KEY[c]));
+
+/* ===== 工具 ===== */
+function lum(r,g,b){return 0.299*r+0.587*g+0.114*b;}
+function nearestPal(r,g,b){let best=1,bd=1e9;
+  for(let i=1;i<PAL.length;i++){const p=PAL[i];const d=(r-p[0])**2+(g-p[1])**2+(b-p[2])**2;if(d<bd){bd=d;best=i;}}return best;}
+let rndS=12345; function rr(){rndS=(rndS*1103515245+12345)&0x7fffffff;return rndS/0x7fffffff;}
+
+/* ===== ① 生成"AI 草稿"：高分辨率 + 模糊 + 杂色 + 偏移 ===== */
+const HR=96, F=6, OFFX=2, OFFY=3;   // 故意错位，制造"没对齐"
+function buildFuzzy(){
+  // 先把干净精灵画到一张 16×16
+  const small=document.createElement('canvas');small.width=N;small.height=N;
+  const sc=small.getContext('2d');
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++){const v=GRID[y][x];if(v){const p=PAL[v];sc.fillStyle=`rgb(${p[0]},${p[1]},${p[2]})`;sc.fillRect(x,y,1,1);}}
+  // 平滑放大 + 偏移 → 糊边、没对齐
+  const hr=document.createElement('canvas');hr.width=HR;hr.height=HR;
+  const hc=hr.getContext('2d');hc.imageSmoothingEnabled=true;
+  hc.clearRect(0,0,HR,HR);
+  hc.drawImage(small,0,0,N,N, OFFX,OFFY, N*F, N*F);
+  // 加杂色 + 渐变漂移
+  const img=hc.getImageData(0,0,HR,HR), d=img.data;
+  for(let y=0;y<HR;y++)for(let x=0;x<HR;x++){const i=(y*HR+x)*4;
+    if(d[i+3]<30)continue;
+    const grad=1+0.16*Math.sin(x*0.13)+0.12*Math.cos(y*0.11);
+    const nz=(rr()-0.5)*46;
+    d[i]=Math.max(0,Math.min(255,d[i]*grad+nz));
+    d[i+1]=Math.max(0,Math.min(255,d[i+1]*grad+nz*0.7));
+    d[i+2]=Math.max(0,Math.min(255,d[i+2]*grad+nz));
+  }
+  hc.putImageData(img,0,0);
+  return hr;
+}
+
+/* ===== ② 算法清洗：最佳偏移降采样 + 调色板量化 ===== */
+function cleanup(hr){
+  const data=hr.getContext('2d').getImageData(0,0,HR,HR).data;
+  const at=(x,y)=>{const i=(y*HR+x)*4;return [data[i],data[i+1],data[i+2],data[i+3]];};
+  // 搜索最佳偏移(0..F-1)：块内亮度方差最小
+  let best=[0,0],bv=1e18;
+  for(let oy=0;oy<F;oy++)for(let ox=0;ox<F;ox++){
+    let tot=0;
+    for(let by=0;by+1<N;by++)for(let bx=0;bx+1<N;bx++){
+      let s=0,s2=0,c=0;
+      for(let yy=0;yy<F;yy++)for(let xx=0;xx<F;xx++){
+        const px=ox+bx*F+xx, py=oy+by*F+yy; if(px>=HR||py>=HR)continue;
+        const p=at(px,py); if(p[3]<40)continue; const L=lum(p[0],p[1],p[2]); s+=L;s2+=L*L;c++;
+      }
+      if(c>0)tot+=s2-s*s/c;
+    }
+    if(tot<bv){bv=tot;best=[ox,oy];}
+  }
+  const [ox,oy]=best;
+  // 每块取中位色 → 量化到调色板
+  const out=[];
+  for(let by=0;by<N;by++){out.push([]);for(let bx=0;bx<N;bx++){
+    const cols=[];let alpha=0,ac=0;
+    for(let yy=0;yy<F;yy++)for(let xx=0;xx<F;xx++){
+      const px=ox+bx*F+xx, py=oy+by*F+yy; if(px>=HR||py>=HR)continue;
+      const p=at(px,py); ac++; alpha+=p[3]; if(p[3]>=40)cols.push(p);
+    }
+    if(cols.length<F*F*0.35 || (ac&&alpha/ac<90)){out[by].push(0);continue;}
+    cols.sort((a,b)=>lum(a[0],a[1],a[2])-lum(b[0],b[1],b[2]));
+    const m=cols[cols.length>>1];
+    out[by].push(nearestPal(m[0],m[1],m[2]));
+  }}
+  return out;   // 16×16 索引
+}
+
+/* ===== ③ 手工精修：去孤立杂点 + 补洞 + 保证轮廓 ===== */
+function polish(idx){
+  const g=idx.map(r=>r.slice());
+  const at=(y,x)=>(y<0||x<0||y>=N||x>=N)?0:g[y][x];
+  // 去孤立点 / 补洞
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+    const nb=[at(y-1,x),at(y+1,x),at(y,x-1),at(y,x+1)];
+    const same=nb.filter(v=>v===g[y][x]).length;
+    if(g[y][x]!==0 && same===0){ // 孤立 → 取邻居众数
+      const cnt={}; nb.forEach(v=>cnt[v]=(cnt[v]||0)+1);
+      let mv=0,mc=-1; for(const k in cnt)if(cnt[k]>mc){mc=cnt[k];mv=+k;} g[y][x]=mv;
+    }
+    if(g[y][x]===0){ // 洞：四周多为实体则填
+      const solid=nb.filter(v=>v>0); if(solid.length>=3){const cnt={};solid.forEach(v=>cnt[v]=(cnt[v]||0)+1);
+        let mv=2,mc=-1;for(const k in cnt)if(cnt[k]>mc){mc=cnt[k];mv=+k;} g[y][x]=mv;}
+    }
+  }
+  // 保证 1px 轮廓：实体(非轮廓)若紧邻透明 → 该透明侧补轮廓不动本体；这里改为本体边缘转轮廓
+  const o=g.map(r=>r.slice());
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++){
+    if(g[y][x]>1){ // body/highlight/eye
+      if(at(y-1,x)===0||at(y+1,x)===0||at(y,x-1)===0||at(y,x+1)===0){
+        if(g[y][x]===2||g[y][x]===3) o[y][x]=1; // 仅身体/高光转描边，保眼睛
+      }
+    }
+  }
+  return o;
+}
+
+/* ===== 渲染 ===== */
+function drawIdx(cv,idx){const c=cv.getContext('2d');c.imageSmoothingEnabled=false;
+  const off=document.createElement('canvas');off.width=N;off.height=N;const oc=off.getContext('2d');
+  for(let y=0;y<N;y++)for(let x=0;x<N;x++){const v=idx[y][x];if(v){const p=PAL[v];oc.fillStyle=`rgb(${p[0]},${p[1]},${p[2]})`;oc.fillRect(x,y,1,1);}}
+  c.clearRect(0,0,cv.width,cv.height);c.drawImage(off,0,0,N,N,0,0,cv.width,cv.height);}
+
+const fuzzy=buildFuzzy();
+// ① 糊图（直接放大 HR）
+(function(){const cv=document.getElementById('s1'),c=cv.getContext('2d');c.imageSmoothingEnabled=false;
+  c.drawImage(fuzzy,0,0,HR,HR,0,0,cv.width,cv.height);})();
+const cleaned=cleanup(fuzzy);
+drawIdx(document.getElementById('s2'),cleaned);
+drawIdx(document.getElementById('s3'),polish(cleaned));
+</script>
+</body>
+</html>

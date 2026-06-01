@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>像素游戏基础 · 第一课</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0e1018;
+    --bg2:#161a28;
+    --ink:#e7e3d8;
+    --dim:#8a8fa3;
+    --line:#2a2f44;
+    --red:#ff3b6b;
+    --orange:#ffb02e;
+    --green:#3ee07a;
+    --blue:#3fb6ff;
+    --purple:#c177f2;
+    --shadow:#05060b;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"VT323","PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;
+    line-height:1.85;
+    font-size:21px;
+    -webkit-font-smoothing:antialiased;
+    background-image:
+      radial-gradient(circle at 18% -10%, rgba(63,182,255,.10), transparent 45%),
+      radial-gradient(circle at 90% 8%, rgba(255,59,107,.08), transparent 40%);
+    position:relative;
+  }
+  /* CRT 扫描线 */
+  body::after{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:9999;
+    background:repeating-linear-gradient(0deg, rgba(0,0,0,.10) 0 1px, transparent 1px 3px);
+    mix-blend-mode:multiply;opacity:.5;
+  }
+  .pix{font-family:"Press Start 2P",monospace;}
+  .wrap{max-width:780px;margin:0 auto;padding:0 22px 90px;}
+
+  /* ---- Hero ---- */
+  header{
+    padding:64px 22px 40px;max-width:780px;margin:0 auto;
+    border-bottom:3px solid var(--line);
+  }
+  .badge{
+    display:inline-block;font-family:"Press Start 2P",monospace;font-size:10px;
+    color:var(--bg);background:var(--green);padding:8px 12px;letter-spacing:1px;
+    box-shadow:4px 4px 0 var(--shadow);margin-bottom:26px;
+  }
+  h1.title{
+    font-family:"Press Start 2P",monospace;font-size:26px;line-height:1.6;
+    margin:0 0 18px;color:var(--ink);text-shadow:3px 3px 0 var(--shadow);
+  }
+  h1.title .cn{
+    display:block;font-family:inherit;font-size:30px;line-height:1.5;margin-top:14px;
+    font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;font-weight:800;
+    letter-spacing:2px;color:var(--orange);text-shadow:2px 2px 0 var(--shadow);
+  }
+  .lede{color:var(--dim);font-size:22px;margin-top:6px;}
+
+  /* ---- Sections ---- */
+  section{padding:44px 0 6px;border-bottom:2px dashed var(--line);}
+  .kicker{
+    font-family:"Press Start 2P",monospace;font-size:11px;letter-spacing:1px;
+    color:var(--blue);display:flex;align-items:center;gap:10px;margin-bottom:14px;
+  }
+  .kicker::before{content:"";width:26px;height:11px;background:var(--blue);display:inline-block;}
+  h2{
+    font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;
+    font-weight:800;font-size:30px;margin:0 0 8px;letter-spacing:1px;
+  }
+  p{margin:14px 0;}
+  .dim{color:var(--dim);}
+  b,strong{color:var(--orange);font-weight:700;}
+  .tag{
+    background:var(--bg2);border:2px solid var(--line);padding:1px 9px;
+    font-family:"Press Start 2P",monospace;font-size:11px;color:var(--green);white-space:nowrap;
+  }
+  .callout{
+    background:var(--bg2);border-left:5px solid var(--red);padding:14px 18px;margin:20px 0;
+    box-shadow:4px 4px 0 var(--shadow);font-size:20px;
+  }
+
+  /* ---- Lab ---- */
+  .lab{
+    background:var(--bg2);border:3px solid var(--line);box-shadow:8px 8px 0 var(--shadow);
+    margin:30px 0;padding:0;overflow:hidden;
+  }
+  .lab-top{
+    background:linear-gradient(90deg,var(--line),transparent);
+    padding:12px 16px;display:flex;align-items:center;gap:10px;
+    font-family:"Press Start 2P",monospace;font-size:11px;color:var(--ink);
+    border-bottom:3px solid var(--line);
+  }
+  .dot{width:11px;height:11px;background:var(--red);box-shadow:16px 0 0 var(--orange),32px 0 0 var(--green);}
+  .lab-body{padding:22px 18px 26px;display:flex;flex-wrap:wrap;gap:26px;align-items:flex-start;}
+  .stage{
+    flex:1 1 260px;min-width:240px;display:flex;flex-direction:column;align-items:center;gap:12px;
+  }
+  .canvas-frame{
+    background:
+      conic-gradient(#1b2030 90deg,#11141f 90deg 180deg,#1b2030 180deg 270deg,#11141f 270deg) 0 0/24px 24px;
+    border:3px solid var(--line);box-shadow:inset 0 0 0 2px var(--shadow);
+    line-height:0;
+  }
+  canvas{display:block;image-rendering:pixelated;}
+  .stage-label{font-family:"Press Start 2P",monospace;font-size:10px;color:var(--dim);}
+  .controls{flex:1 1 230px;min-width:220px;display:flex;flex-direction:column;gap:20px;}
+  .ctrl-label{
+    font-family:"Press Start 2P",monospace;font-size:10px;color:var(--blue);
+    margin-bottom:9px;display:block;letter-spacing:.5px;
+  }
+  input[type=range]{
+    -webkit-appearance:none;width:100%;height:10px;background:var(--bg);
+    border:2px solid var(--line);outline:none;cursor:pointer;
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none;width:18px;height:18px;background:var(--green);
+    border:2px solid var(--shadow);cursor:pointer;
+  }
+  input[type=range]::-moz-range-thumb{
+    width:18px;height:18px;background:var(--green);border:2px solid var(--shadow);cursor:pointer;border-radius:0;
+  }
+  .val{font-family:"Press Start 2P",monospace;font-size:11px;color:var(--green);}
+  .btn-row{display:flex;flex-wrap:wrap;gap:8px;}
+  button{
+    font-family:"VT323",sans-serif;font-size:19px;cursor:pointer;
+    background:var(--bg);color:var(--ink);border:2px solid var(--line);
+    padding:6px 12px;box-shadow:3px 3px 0 var(--shadow);transition:all .05s;
+  }
+  button:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--shadow);}
+  button:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--shadow);}
+  button.on{background:var(--green);color:var(--bg);border-color:var(--green);font-weight:bold;}
+  .sw{width:14px;height:14px;display:inline-block;border:2px solid var(--shadow);margin-right:2px;vertical-align:-2px;}
+  .hint{font-size:18px;color:var(--dim);margin-top:2px;}
+
+  /* tiny actual-size demo */
+  .res-demo{display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin:18px 0;}
+  .res-demo .box{display:flex;flex-direction:column;align-items:center;gap:8px;}
+  .res-demo canvas{border:2px solid var(--line);background:#11141f;}
+
+  .next{
+    background:linear-gradient(135deg,var(--bg2),#1d1530);
+    border:3px solid var(--purple);box-shadow:8px 8px 0 var(--shadow);
+    padding:26px 22px;margin-top:34px;
+  }
+  .next h3{font-family:"Press Start 2P",monospace;font-size:14px;color:var(--purple);margin:0 0 16px;}
+  .next ul{margin:0;padding-left:4px;list-style:none;}
+  .next li{padding:7px 0;border-bottom:1px dashed var(--line);}
+  .next li::before{content:"▸ ";color:var(--purple);}
+  footer{max-width:780px;margin:0 auto;padding:34px 22px;color:var(--dim);font-size:16px;text-align:center;}
+  .pjump{font-family:"Press Start 2P",monospace;font-size:9px;color:var(--green);}
+</style>
+</head>
+<body>
+
+<header>
+  <span class="badge">LESSON 01 / 4</span>
+  <h1 class="title">PIXEL BASICS<span class="cn">像素游戏 · 第一课</span></h1>
+  <p class="lede">从最底层开始：一个像素到底是什么。本课只讲 4 个概念，配一个可动手的实验室。</p>
+</header>
+
+<div class="wrap">
+
+  <!-- 01 -->
+  <section>
+    <div class="kicker">CONCEPT 01 — THE PIXEL</div>
+    <h2>像素是什么</h2>
+    <p>像素画里，最小的单位就是<b>一个正方形格子</b>，里面填<b>一种纯色</b>——不多不少。整张图就是一张这样的方格网，每格一个颜色。</p>
+    <p class="dim">这正是你之前折腾 AI 图时遇到的反差：AI 图<span class="tag">看着像素</span>但放大后每个"格子"不是正方、也不是纯色、还带过渡。真正的像素画在数据层面就是干净的"网格 + 索引颜色"。下面这只史莱姆就是一张手工像素图，拖动缩放看看它的每一格。</p>
+
+    <!-- ===== LAB ===== -->
+    <div class="lab">
+      <div class="lab-top"><span class="dot"></span><span style="margin-left:38px">PIXEL_LAB.exe</span></div>
+      <div class="lab-body">
+        <div class="stage">
+          <div class="canvas-frame"><canvas id="main" width="384" height="384"></canvas></div>
+          <div class="stage-label" id="resLabel">16 × 16 px · scale 18×</div>
+        </div>
+        <div class="controls">
+          <div>
+            <span class="ctrl-label">缩放倍数 / ZOOM <span class="val" id="zoomVal">18×</span></span>
+            <input type="range" id="zoom" min="4" max="24" value="18" step="1">
+          </div>
+          <div>
+            <span class="ctrl-label">显示 / VIEW</span>
+            <div class="btn-row">
+              <button id="gridBtn">▦ 网格线</button>
+              <button id="smoothBtn">≈ 平滑缩放</button>
+            </div>
+            <div class="hint" id="smoothHint">当前：最近邻（硬边方块）</div>
+          </div>
+          <div>
+            <span class="ctrl-label">调色板 / PALETTE</span>
+            <div class="btn-row">
+              <button class="pal on" data-pal="green"><span class="sw" style="background:#3ee07a"></span>绿</button>
+              <button class="pal" data-pal="red"><span class="sw" style="background:#ff3b6b"></span>红</button>
+              <button class="pal" data-pal="blue"><span class="sw" style="background:#3fb6ff"></span>蓝</button>
+              <button class="pal" data-pal="purple"><span class="sw" style="background:#c177f2"></span>紫</button>
+            </div>
+            <div class="hint">同一张图、同一份"格子数据"，只换颜色表。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 -->
+  <section>
+    <div class="kicker">CONCEPT 02 — RESOLUTION</div>
+    <h2>画布分辨率：故意画得很小</h2>
+    <p>像素游戏的素材<b>分辨率非常低</b>。一个角色常见就 <span class="tag">16×16</span> 或 <span class="tag">32×32</span>，一个图标可能只有 <span class="tag">8×8</span>。上面那只史莱姆的"真实大小"其实只有指甲盖那么点——左边是它的原始尺寸，右边是放大后的样子：</p>
+    <div class="res-demo">
+      <div class="box"><canvas id="tiny" width="16" height="16"></canvas><span class="stage-label">真实 16×16</span></div>
+      <span class="pix" style="color:var(--dim);font-size:18px">───▶</span>
+      <div class="box"><canvas id="mid" width="96" height="96"></canvas><span class="stage-label">放大 6×</span></div>
+    </div>
+    <p class="dim">为什么要这么小？因为<b>限制就是手艺</b>。格子越少，每一格的位置和颜色就越关键，逼你用最少的像素表达形状——这就是像素画的核心功夫。常用尺寸大致是：图标 8/16、角色 16/32、Boss 或场景物件 48/64，再大就偏插画了。</p>
+  </section>
+
+  <!-- 03 -->
+  <section>
+    <div class="kicker">CONCEPT 03 — SCALING</div>
+    <h2>整数缩放与"最近邻"</h2>
+    <p>小图要放到屏幕上看，必须放大。关键有两点：<b>用整数倍放大</b>（2×、3×、4×…），并且用<b>最近邻（nearest-neighbor）</b>插值，而不是平滑插值。</p>
+    <p class="dim">回到上面的实验室：点一下 <span class="tag">≈ 平滑缩放</span> 按钮，史莱姆立刻变糊——边缘出现了渐变和模糊。这就是普通图片放大用的"双线性插值"，它会在像素之间猜中间色。<b>最近邻</b>则是直接把一格复制成一大块，保持硬边方块。</p>
+    <div class="callout">这正是你那个 AI 像素图"放大就露馅"的底层原因：它的格子本来就没对齐、还带平滑过渡，等于已经被"平滑缩放"污染过了。真像素画只认整数倍 + 最近邻。</div>
+  </section>
+
+  <!-- 04 -->
+  <section>
+    <div class="kicker">CONCEPT 04 — PALETTE</div>
+    <h2>调色板与索引色</h2>
+    <p>像素画通常只用<b>很少的颜色</b>（比如 8 色、16 色一组），这套颜色就叫<b>调色板（palette）</b>。更进一步，每个像素存的<b>不是颜色本身，而是"第几号颜色"的编号</b>——这叫<b>索引色（indexed color）</b>。</p>
+    <p class="dim">在实验室里点 <span class="tag">红 / 蓝 / 紫</span> 试试：史莱姆瞬间换色，但形状一格没变。因为格子数据存的是"轮廓色、身体色、高光色、眼白、瞳孔"这些<b>编号</b>，我换的只是编号对应的那张颜色表。这就是之前聊 Aseprite 时说的"索引模式"的威力——<b>换色、做昼夜变化、受击闪白、同一套图改出敌人变体</b>，全靠换调色板，不用重画。</p>
+  </section>
+
+  <!-- next -->
+  <div class="next">
+    <h3>▶ NEXT LESSON</h3>
+    <p style="margin-top:0" class="dim">这一课你已经拿到了四块地基：<b>像素 · 分辨率 · 缩放 · 调色板</b>。下一课我们往上盖：</p>
+    <ul>
+      <li>精灵（Sprite）：角色、透明背景、轮廓与体积</li>
+      <li>反锯齿与抖动（AA / Dithering）：用有限颜色骗出渐变</li>
+      <li>瓦片地图（Tilemap）：怎么用一小堆方块拼出整个世界</li>
+      <li>逐帧动画：洋葱皮、关键帧，以及怎么避免"像素沸腾"</li>
+    </ul>
+    <p class="dim" style="margin-bottom:0">想继续就跟我说"下一课"，我会照同样的方式做第二课。</p>
+  </div>
+
+</div>
+
+<footer>
+  <span class="pjump">PIXEL BASICS · 01</span><br>
+  动手玩上面的实验室，比读十遍都管用 ✦
+</footer>
+
+<script>
+/* ---- 手工像素数据：一只 16×16 史莱姆 ----
+   . 透明  o 轮廓  b 身体  h 高光  w 眼白  p 瞳孔  */
+const SPRITE = [
+  "................",
+  "................",
+  "......oooo......",
+  "....oohhhhoo....",
+  "...ohhbbbbhho...",
+  "..obbbbbbbbbbo..",
+  ".obbbbbbbbbbbbo.",
+  ".obbwwbbbbwwbbo.",
+  "obbwwwbbbbwwwbbo",
+  "obbwpwbbbbwpwbbo",
+  "obbwwwbbbbwwwbbo",
+  "obbbbbbbbbbbbbbo",
+  "obbbbbbbbbbbbbbo",
+  ".obbbbbbbbbbbbo.",
+  "..oobbbbbbbboo..",
+  "....oooooooo...."
+];
+const KEY = {'.':0,'o':1,'b':2,'h':3,'w':4,'p':5};
+const SIZE = 16;
+
+// index: 0透明 1轮廓 2身体 3高光 4眼白 5瞳孔
+const PALETTES = {
+  green:  [null,'#15402b','#37b24d','#69db7c','#ffffff','#1b2a1f'],
+  red:    [null,'#5a1212','#e8384f','#ff8aa0','#ffffff','#2a1414'],
+  blue:   [null,'#10325c','#1c7ed6','#74c0fc','#ffffff','#10243e'],
+  purple: [null,'#3b1759','#9c36b5','#da77f2','#ffffff','#1e0f2e']
+};
+
+// 预解析成索引矩阵
+const GRID = SPRITE.map(row => [...row].map(c => KEY[c]));
+
+let state = { zoom:18, grid:false, smooth:false, pal:'green' };
+
+// 把 16×16 画到一个离屏 canvas（原生分辨率）
+function buildOffscreen(pal){
+  const off = document.createElement('canvas');
+  off.width = SIZE; off.height = SIZE;
+  const c = off.getContext('2d');
+  for(let y=0;y<SIZE;y++){
+    for(let x=0;x<SIZE;x++){
+      const col = pal[GRID[y][x]];
+      if(col){ c.fillStyle = col; c.fillRect(x,y,1,1); }
+    }
+  }
+  return off;
+}
+
+const main = document.getElementById('main');
+const mctx = main.getContext('2d');
+
+function renderMain(){
+  const pal = PALETTES[state.pal];
+  const off = buildOffscreen(pal);
+  const scale = state.zoom;
+  const dim = SIZE * scale;
+  main.width = dim; main.height = dim;
+  mctx.clearRect(0,0,dim,dim);
+  mctx.imageSmoothingEnabled = state.smooth;   // 最近邻 vs 平滑 的开关
+  mctx.drawImage(off, 0, 0, SIZE, SIZE, 0, 0, dim, dim);
+
+  if(state.grid && !state.smooth){
+    mctx.strokeStyle = 'rgba(255,255,255,.12)';
+    mctx.lineWidth = 1;
+    for(let i=0;i<=SIZE;i++){
+      mctx.beginPath(); mctx.moveTo(i*scale+.5,0); mctx.lineTo(i*scale+.5,dim); mctx.stroke();
+      mctx.beginPath(); mctx.moveTo(0,i*scale+.5); mctx.lineTo(dim,i*scale+.5); mctx.stroke();
+    }
+  }
+  document.getElementById('resLabel').textContent =
+    `16 × 16 px · scale ${scale}×` + (state.smooth ? ' · 平滑' : ' · 最近邻');
+}
+
+// 小尺寸演示（固定绿色）
+function renderTiny(){
+  const off = buildOffscreen(PALETTES.green);
+  const tiny = document.getElementById('tiny');
+  tiny.getContext('2d').drawImage(off,0,0);
+  const mid = document.getElementById('mid');
+  const mc = mid.getContext('2d');
+  mc.imageSmoothingEnabled = false;
+  mc.drawImage(off,0,0,SIZE,SIZE,0,0,96,96);
+}
+
+// ---- 控件 ----
+const zoom = document.getElementById('zoom');
+zoom.addEventListener('input',()=>{
+  state.zoom = +zoom.value;
+  document.getElementById('zoomVal').textContent = state.zoom+'×';
+  renderMain();
+});
+const gridBtn = document.getElementById('gridBtn');
+gridBtn.addEventListener('click',()=>{
+  state.grid = !state.grid;
+  gridBtn.classList.toggle('on',state.grid);
+  renderMain();
+});
+const smoothBtn = document.getElementById('smoothBtn');
+const smoothHint = document.getElementById('smoothHint');
+smoothBtn.addEventListener('click',()=>{
+  state.smooth = !state.smooth;
+  smoothBtn.classList.toggle('on',state.smooth);
+  smoothHint.textContent = state.smooth
+    ? '当前：平滑插值（边缘变糊 —— 这就是"假像素"的样子）'
+    : '当前：最近邻（硬边方块）';
+  renderMain();
+});
+document.querySelectorAll('.pal').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('.pal').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');
+    state.pal = b.dataset.pal;
+    renderMain();
+  });
+});
+
+renderMain();
+renderTiny();
+</script>
+</body>
+</html>

@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>像素游戏进阶 · 第五课</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0e1018; --bg2:#161a28; --ink:#e7e3d8; --dim:#8a8fa3; --line:#2a2f44;
+    --red:#ff3b6b; --orange:#ff9d3c; --green:#3ee07a; --blue:#3fb6ff; --teal:#4fd6e0;
+    --purple:#c177f2; --pink:#ff5fa2; --shadow:#05060b;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"VT323","PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;
+    line-height:1.85;font-size:21px;-webkit-font-smoothing:antialiased;position:relative;
+    background-image:
+      radial-gradient(circle at 18% -10%, rgba(255,95,162,.10), transparent 45%),
+      radial-gradient(circle at 90% 8%, rgba(63,182,255,.08), transparent 40%);}
+  body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:9999;
+    background:repeating-linear-gradient(0deg, rgba(0,0,0,.10) 0 1px, transparent 1px 3px);
+    mix-blend-mode:multiply;opacity:.5;}
+  .pix{font-family:"Press Start 2P",monospace;}
+  .wrap{max-width:780px;margin:0 auto;padding:0 22px 90px;}
+  header{padding:64px 22px 40px;max-width:780px;margin:0 auto;border-bottom:3px solid var(--line);}
+  .badge{display:inline-block;font-family:"Press Start 2P",monospace;font-size:10px;
+    color:var(--bg);background:var(--pink);padding:8px 12px;letter-spacing:1px;
+    box-shadow:4px 4px 0 var(--shadow);margin-bottom:26px;}
+  h1.title{font-family:"Press Start 2P",monospace;font-size:23px;line-height:1.6;
+    margin:0 0 18px;color:var(--ink);text-shadow:3px 3px 0 var(--shadow);}
+  h1.title .cn{display:block;font-size:30px;line-height:1.5;margin-top:14px;
+    font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;font-weight:800;
+    letter-spacing:2px;color:var(--orange);text-shadow:2px 2px 0 var(--shadow);}
+  .lede{color:var(--dim);font-size:22px;margin-top:6px;}
+  section{padding:44px 0 6px;border-bottom:2px dashed var(--line);}
+  .kicker{font-family:"Press Start 2P",monospace;font-size:11px;letter-spacing:1px;
+    color:var(--pink);display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+  .kicker::before{content:"";width:26px;height:11px;background:var(--pink);display:inline-block;}
+  h2{font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;
+    font-weight:800;font-size:30px;margin:0 0 8px;letter-spacing:1px;}
+  p{margin:14px 0;} .dim{color:var(--dim);} b,strong{color:var(--orange);font-weight:700;}
+  .tag{background:var(--bg2);border:2px solid var(--line);padding:1px 9px;
+    font-family:"Press Start 2P",monospace;font-size:11px;color:var(--pink);white-space:nowrap;}
+  .callout{background:var(--bg2);border-left:5px solid var(--green);padding:14px 18px;margin:20px 0;
+    box-shadow:4px 4px 0 var(--shadow);font-size:20px;}
+
+  .lab{background:var(--bg2);border:3px solid var(--line);box-shadow:8px 8px 0 var(--shadow);
+    margin:30px 0;overflow:hidden;}
+  .lab-top{background:linear-gradient(90deg,var(--line),transparent);padding:12px 16px;
+    display:flex;align-items:center;gap:10px;font-family:"Press Start 2P",monospace;
+    font-size:11px;color:var(--ink);border-bottom:3px solid var(--line);}
+  .dot{width:11px;height:11px;background:var(--red);box-shadow:16px 0 0 var(--orange),32px 0 0 var(--green);}
+  .lab-body{padding:22px 18px 26px;}
+  .spheres{display:flex;gap:24px;flex-wrap:wrap;justify-content:center;}
+  .sph{display:flex;flex-direction:column;align-items:center;gap:10px;}
+  .canvas-frame{background:
+      conic-gradient(#1b2030 90deg,#11141f 90deg 180deg,#1b2030 180deg 270deg,#11141f 270deg) 0 0/22px 22px;
+    border:3px solid var(--line);box-shadow:inset 0 0 0 2px var(--shadow);line-height:0;}
+  canvas{display:block;image-rendering:pixelated;}
+  .sph .name{font-family:"Press Start 2P",monospace;font-size:10px;}
+  .name.bad{color:var(--dim);} .name.good{color:var(--pink);}
+  .ramp{display:flex;gap:0;border:2px solid var(--shadow);}
+  .ramp i{width:22px;height:18px;display:block;}
+  .ctrl-label{font-family:"Press Start 2P",monospace;font-size:10px;color:var(--blue);
+    margin:20px 0 9px;display:block;letter-spacing:.5px;}
+  input[type=range]{-webkit-appearance:none;width:100%;height:10px;background:var(--bg);
+    border:2px solid var(--line);outline:none;cursor:pointer;}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;
+    background:var(--pink);border:2px solid var(--shadow);cursor:pointer;}
+  input[type=range]::-moz-range-thumb{width:18px;height:18px;background:var(--pink);
+    border:2px solid var(--shadow);cursor:pointer;border-radius:0;}
+  .val{font-family:"Press Start 2P",monospace;font-size:11px;color:var(--pink);}
+  .btn-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px;}
+  button{font-family:"VT323",sans-serif;font-size:19px;cursor:pointer;background:var(--bg);
+    color:var(--ink);border:2px solid var(--line);padding:6px 12px;
+    box-shadow:3px 3px 0 var(--shadow);transition:all .05s;}
+  button:hover{transform:translate(-1px,-1px);}
+  button:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--shadow);}
+  button.on{background:var(--pink);color:var(--bg);border-color:var(--pink);font-weight:bold;}
+  .hint{font-size:18px;color:var(--dim);margin-top:8px;min-height:2.4em;}
+
+  /* palette swatch rows */
+  .pal{margin:16px 0;}
+  .pal .nm{font-family:"Press Start 2P",monospace;font-size:9px;color:var(--dim);margin-bottom:6px;}
+  .pal .sw{display:flex;border:2px solid var(--shadow);box-shadow:3px 3px 0 var(--shadow);}
+  .pal .sw i{flex:1;height:28px;display:block;}
+
+  .next{background:linear-gradient(135deg,var(--bg2),#2a0f1e);border:3px solid var(--pink);
+    box-shadow:8px 8px 0 var(--shadow);padding:26px 22px;margin-top:34px;}
+  .next h3{font-family:"Press Start 2P",monospace;font-size:14px;color:var(--pink);margin:0 0 16px;}
+  .next ul{margin:0;padding-left:4px;list-style:none;}
+  .next li{padding:7px 0;border-bottom:1px dashed var(--line);}
+  .next li::before{content:"▸ ";color:var(--pink);}
+  footer{max-width:780px;margin:0 auto;padding:34px 22px;color:var(--dim);font-size:16px;text-align:center;}
+  .pjump{font-family:"Press Start 2P",monospace;font-size:9px;color:var(--pink);}
+</style>
+</head>
+<body>
+
+<header>
+  <span class="badge">LESSON 05 · ADVANCED</span>
+  <h1 class="title">HUE SHIFTING<span class="cn">进阶 · 调色板与色相偏移</span></h1>
+  <p class="lede">上色高手的第一道分水岭。先记住一句话：阴影要偏色相，不是单纯调暗。</p>
+</header>
+
+<div class="wrap">
+
+  <!-- 01 -->
+  <section>
+    <div class="kicker">CONCEPT 01 — VALUE IS KING</div>
+    <h2>三个旋钮，明度为王</h2>
+    <p>颜色有三个旋钮：<b>色相（Hue，是红是蓝）</b>、<b>饱和度（Saturation，鲜艳还是灰）</b>、<b>明度（Value，亮还是暗）</b>。三者里<b>明度最重要</b>——物体能不能被认出来、有没有立体感，几乎全靠明度的对比。</p>
+    <p class="dim">检验方法很简单：把作品<b>去色变灰</b>，如果灰度图里形体依然清晰，明度就过关了。下面实验室有个 <span class="tag">去色对比</span> 开关，待会儿你会看到——色相偏移让画面变生动，但灰度几乎不变，说明它没有牺牲可读性。</p>
+  </section>
+
+  <!-- 02 -->
+  <section>
+    <div class="kicker">CONCEPT 02 — HUE SHIFTING</div>
+    <h2>色相偏移：让颜色"活"过来</h2>
+    <p>新手上色：选个红色，做阴影就把它<b>调暗</b>，做高光就<b>调亮</b>——色相始终不变。结果是「塑料感」，发闷。</p>
+    <p>高手的做法：做阴影时<b>把色相往冷的方向转（偏蓝/紫）</b>，做高光时<b>往暖的方向转（偏黄）</b>。这模拟了真实世界——暖光照亮处偏暖、背光处受环境冷光影响偏冷。下面左边是只调明度的球，右边拖滑块加色相偏移，<b>对比一下哪个更"通透"</b>：</p>
+
+    <!-- ===== LAB ===== -->
+    <div class="lab">
+      <div class="lab-top"><span class="dot"></span><span style="margin-left:38px">COLOR_LAB.exe</span></div>
+      <div class="lab-body">
+        <div class="spheres">
+          <div class="sph">
+            <div class="canvas-frame"><canvas id="naive" width="220" height="220"></canvas></div>
+            <div class="name bad">只调明度</div>
+            <div class="ramp" id="rampN"></div>
+          </div>
+          <div class="sph">
+            <div class="canvas-frame"><canvas id="shift" width="220" height="220"></canvas></div>
+            <div class="name good">色相偏移</div>
+            <div class="ramp" id="rampS"></div>
+          </div>
+        </div>
+
+        <span class="ctrl-label">色相偏移量 / HUE SHIFT <span class="val" id="shiftVal">42°</span></span>
+        <input type="range" id="shift_r" min="0" max="70" value="42" step="1">
+        <span class="ctrl-label">基础色相 / BASE HUE <span class="val" id="hueVal">8°</span></span>
+        <input type="range" id="hue_r" min="0" max="359" value="8" step="3">
+        <div class="btn-row"><button id="grayBtn">◐ 去色对比</button></div>
+        <div class="hint" id="hint">把「色相偏移量」拉到 0：右球立刻塌成和左球一样的闷红。拉满：阴影偏紫、高光偏黄，球通透了。</div>
+      </div>
+    </div>
+    <div class="callout">注意下面那两条<b>色阶（ramp）</b>：左边是一条直直的红，右边像一条<b>弯曲的彩虹</b>——从暗端的紫红，经过中间的正红，弯到亮端的橙黄。这条"香蕉形"的弯曲，就是色相偏移的全部秘密。</div>
+  </section>
+
+  <!-- 03 -->
+  <section>
+    <div class="kicker">CONCEPT 03 — RAMPS</div>
+    <h2>色阶：可复用的颜色梯队</h2>
+    <p>那条由暗到亮的颜色序列就叫<b>色阶（ramp）</b>，通常 4～6 格。它是像素上色的<b>基本单位</b>：画一个物体时，你不是随手取色，而是<b>沿着一条 ramp 取这几格</b>，整张图就自动协调了。</p>
+    <p class="dim">两个进阶技巧：① <b>ramp 之间可以共享端点</b>——比如皮肤的暗部和头发的亮部用同一格，颜色总数就能压得很省；② 暗部那几格<b>偏冷并略微提高饱和度</b>，亮部<b>偏暖并降低饱和度</b>（趋近白），这正是上面右边 ramp 的走向。把"调暗"换成"沿 ramp 下移"，思路就对了。</p>
+  </section>
+
+  <!-- 04 -->
+  <section>
+    <div class="kicker">CONCEPT 04 — LIMITED PALETTES</div>
+    <h2>有限调色板：约束即风格</h2>
+    <p>很多经典像素作品<b>全图只用十几种颜色</b>，并且固定下来——这叫<b>有限调色板</b>。颜色少不是缺点，反而逼你复用 ramp、统一色调，画面天然和谐，还自带年代感。社区里流行的成套调色板（如 16 色、32 色的 DB、PICO-8 等）就是现成的"配色已调好"工具。</p>
+    <div class="pal">
+      <div class="nm">示例 · 8 色（暖调小品）</div>
+      <div class="sw"><i style="background:#2b1a3a"></i><i style="background:#5a3a4f"></i><i style="background:#a8556a"></i><i style="background:#e08a5a"></i><i style="background:#f4c97a"></i><i style="background:#7fae6e"></i><i style="background:#4a7a8c"></i><i style="background:#f4f0e0"></i></div>
+    </div>
+    <div class="pal">
+      <div class="nm">示例 · 16 色（通用）</div>
+      <div class="sw"><i style="background:#1a1326"></i><i style="background:#3b2348"></i><i style="background:#5d3a66"></i><i style="background:#8a4f6d"></i><i style="background:#c25f6a"></i><i style="background:#e98a5a"></i><i style="background:#f4c45a"></i><i style="background:#f7f0c8"></i><i style="background:#9bd06a"></i><i style="background:#4fa86a"></i><i style="background:#2c7a6e"></i><i style="background:#2a5a8c"></i><i style="background:#3f7fc4"></i><i style="background:#6fb6e0"></i><i style="background:#b08ad0"></i><i style="background:#e7e3d8"></i></div>
+    </div>
+    <p class="dim">上手建议：别每次都新建颜色。<b>先定一套 8～16 色的调色板，逼自己只用这些</b>。约束会让你画得更快、更统一，这也是像素画"看起来就很对"的隐藏原因。</p>
+  </section>
+
+  <!-- next -->
+  <div class="next">
+    <h3>▶ NEXT — LESSON 06</h3>
+    <p style="margin-top:0" class="dim">会上色之后，下一课讲<b>不同材质</b>怎么上色：</p>
+    <ul>
+      <li>同一个球，画成金属 / 玻璃 / 木头 / 水 / 皮肤</li>
+      <li>高光的形状与硬度（金属硬、皮肤软）</li>
+      <li>手工抗锯齿（AA）与消除色阶断层</li>
+    </ul>
+    <p class="dim" style="margin-bottom:0">说"下一课"继续。</p>
+  </div>
+
+</div>
+
+<footer>
+  <span class="pjump">PIXEL ADVANCED · 05</span><br>
+  把「色相偏移量」从 0 拉到满，再开「去色对比」——这一课的精髓全在这两个动作里 ✦
+</footer>
+
+<script>
+/* ===== HSV → RGB ===== */
+function hsv2hex(h,s,v){
+  h=((h%360)+360)%360; const c=v*s, x=c*(1-Math.abs((h/60)%2-1)), m=v-c;
+  let r,g,b;
+  if(h<60){r=c;g=x;b=0;} else if(h<120){r=x;g=c;b=0;} else if(h<180){r=0;g=c;b=x;}
+  else if(h<240){r=0;g=x;b=c;} else if(h<300){r=x;g=0;b=c;} else {r=c;g=0;b=x;}
+  const to=(n)=>('0'+Math.round((n+m)*255).toString(16)).slice(-2);
+  return '#'+to(r)+to(g)+to(b);
+}
+function rotateToward(h,target,frac){
+  let d=((target-h+540)%360)-180;       // 最短弧
+  return h + d*frac;
+}
+function grayOf(hex){
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  const y=Math.round(0.299*r+0.587*g+0.114*b);
+  const h=('0'+y.toString(16)).slice(-2); return '#'+h+h+h;
+}
+
+/* ===== 构建 5 格色阶 ===== */
+const COOL=245, WARM=52;                 // 暗部偏蓝紫 / 亮部偏黄
+function buildRamp(baseH, shiftDeg){
+  const f=shiftDeg/70;                    // 0..1
+  const ramp=[];
+  for(let i=0;i<5;i++){
+    const t=i/4;                          // 0暗..1亮
+    const v=0.26+t*0.74;                  // 明度
+    let s=0.90-Math.max(0,t-0.5)*0.74;    // 亮端去饱和
+    if(t<0.25) s=Math.min(0.95,s+0.05);
+    const strength=Math.abs(t-0.5)*2;     // 中间0 两端1
+    const target=t<0.5?COOL:WARM;
+    const h=rotateToward(baseH,target,strength*f*0.7);
+    ramp.push(hsv2hex(h,s,v));
+  }
+  return ramp;                            // [暗..亮]
+}
+
+/* ===== 球体渲染 ===== */
+const SIZE=22, CX=(SIZE-1)/2, CY=(SIZE-1)/2, R=SIZE/2-1.3;
+const LX=-0.55,LY=-0.55,LZ=0.62;
+function darken(hex){ // 轮廓色：比最暗再暗一点
+  const r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);
+  const d=(n)=>('0'+Math.max(0,Math.round(n*0.55)).toString(16)).slice(-2);
+  return '#'+d(r)+d(g)+d(b);
+}
+function renderSphere(cv, ramp, gray){
+  const pal = gray? ramp.map(grayOf) : ramp.slice();
+  const outline = gray? grayOf(darken(ramp[0])) : darken(ramp[0]);
+  const off=document.createElement('canvas'); off.width=SIZE; off.height=SIZE;
+  const c=off.getContext('2d');
+  for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++){
+    const nx=(x-CX)/R, ny=(y-CY)/R, r2=nx*nx+ny*ny;
+    if(r2>1)continue;
+    const edge=((x-1-CX)/R)**2+ny*ny>1||((x+1-CX)/R)**2+ny*ny>1||
+               nx*nx+((y-1-CY)/R)**2>1||nx*nx+((y+1-CY)/R)**2>1;
+    let col;
+    if(edge) col=outline;
+    else{ let nz=Math.sqrt(Math.max(0,1-r2)); let i=nx*LX+ny*LY+nz*LZ; if(i<0)i=0;
+      let idx=i<=0.16?0:i<=0.42?1:i<=0.66?2:i<=0.88?3:4; col=pal[idx]; }
+    c.fillStyle=col; c.fillRect(x,y,1,1);
+  }
+  const scale=10, dim=SIZE*scale; cv.width=dim; cv.height=dim;
+  const ctx=cv.getContext('2d'); ctx.imageSmoothingEnabled=false;
+  ctx.clearRect(0,0,dim,dim); ctx.drawImage(off,0,0,SIZE,SIZE,0,0,dim,dim);
+}
+function showRamp(el, ramp, gray){
+  el.innerHTML='';
+  (gray?ramp.map(grayOf):ramp).forEach(c=>{ const i=document.createElement('i'); i.style.background=c; el.appendChild(i); });
+}
+
+/* ===== 状态 & 更新 ===== */
+let baseH=8, shiftDeg=42, gray=false;
+function update(){
+  const naiveRamp=buildRamp(baseH,0);
+  const shiftRamp=buildRamp(baseH,shiftDeg);
+  renderSphere(document.getElementById('naive'),naiveRamp,gray);
+  renderSphere(document.getElementById('shift'),shiftRamp,gray);
+  showRamp(document.getElementById('rampN'),naiveRamp,gray);
+  showRamp(document.getElementById('rampS'),shiftRamp,gray);
+}
+const sr=document.getElementById('shift_r');
+sr.addEventListener('input',()=>{shiftDeg=+sr.value;document.getElementById('shiftVal').textContent=shiftDeg+'°';update();});
+const hr=document.getElementById('hue_r');
+hr.addEventListener('input',()=>{baseH=+hr.value;document.getElementById('hueVal').textContent=baseH+'°';update();});
+const gb=document.getElementById('grayBtn');
+gb.addEventListener('click',()=>{gray=!gray;gb.classList.toggle('on',gray);
+  document.getElementById('hint').textContent=gray
+    ? '去色后两球的明度几乎一样——证明色相偏移没动可读性，只是凭空加了通透感。'
+    : '把「色相偏移量」拉到 0：右球塌成闷红。拉满：阴影偏紫、高光偏黄，球通透了。';
+  update();});
+
+update();
+</script>
+</body>
+</html>

@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>像素游戏进阶 · 第六课</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0e1018; --bg2:#161a28; --ink:#e7e3d8; --dim:#8a8fa3; --line:#2a2f44;
+    --red:#ff3b6b; --orange:#ff9d3c; --green:#3ee07a; --blue:#3fb6ff; --teal:#4fd6e0;
+    --purple:#c177f2; --gold:#e0b341; --shadow:#05060b;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"VT323","PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;
+    line-height:1.85;font-size:21px;-webkit-font-smoothing:antialiased;position:relative;
+    background-image:
+      radial-gradient(circle at 18% -10%, rgba(224,179,65,.10), transparent 45%),
+      radial-gradient(circle at 90% 8%, rgba(63,182,255,.08), transparent 40%);}
+  body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:9999;
+    background:repeating-linear-gradient(0deg, rgba(0,0,0,.10) 0 1px, transparent 1px 3px);
+    mix-blend-mode:multiply;opacity:.5;}
+  .pix{font-family:"Press Start 2P",monospace;}
+  .wrap{max-width:780px;margin:0 auto;padding:0 22px 90px;}
+  header{padding:64px 22px 40px;max-width:780px;margin:0 auto;border-bottom:3px solid var(--line);}
+  .badge{display:inline-block;font-family:"Press Start 2P",monospace;font-size:10px;
+    color:var(--bg);background:var(--gold);padding:8px 12px;letter-spacing:1px;
+    box-shadow:4px 4px 0 var(--shadow);margin-bottom:26px;}
+  h1.title{font-family:"Press Start 2P",monospace;font-size:23px;line-height:1.6;
+    margin:0 0 18px;color:var(--ink);text-shadow:3px 3px 0 var(--shadow);}
+  h1.title .cn{display:block;font-size:30px;line-height:1.5;margin-top:14px;
+    font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;font-weight:800;
+    letter-spacing:2px;color:var(--teal);text-shadow:2px 2px 0 var(--shadow);}
+  .lede{color:var(--dim);font-size:22px;margin-top:6px;}
+  section{padding:44px 0 6px;border-bottom:2px dashed var(--line);}
+  .kicker{font-family:"Press Start 2P",monospace;font-size:11px;letter-spacing:1px;
+    color:var(--gold);display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+  .kicker::before{content:"";width:26px;height:11px;background:var(--gold);display:inline-block;}
+  h2{font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;
+    font-weight:800;font-size:30px;margin:0 0 8px;letter-spacing:1px;}
+  p{margin:14px 0;} .dim{color:var(--dim);} b,strong{color:var(--teal);font-weight:700;}
+  .tag{background:var(--bg2);border:2px solid var(--line);padding:1px 9px;
+    font-family:"Press Start 2P",monospace;font-size:11px;color:var(--gold);white-space:nowrap;}
+  .callout{background:var(--bg2);border-left:5px solid var(--green);padding:14px 18px;margin:20px 0;
+    box-shadow:4px 4px 0 var(--shadow);font-size:20px;}
+
+  .lab{background:var(--bg2);border:3px solid var(--line);box-shadow:8px 8px 0 var(--shadow);
+    margin:30px 0;overflow:hidden;}
+  .lab-top{background:linear-gradient(90deg,var(--line),transparent);padding:12px 16px;
+    display:flex;align-items:center;gap:10px;font-family:"Press Start 2P",monospace;
+    font-size:11px;color:var(--ink);border-bottom:3px solid var(--line);}
+  .dot{width:11px;height:11px;background:var(--red);box-shadow:16px 0 0 var(--orange),32px 0 0 var(--green);}
+  .lab-body{padding:22px 18px 26px;display:flex;flex-wrap:wrap;gap:26px;align-items:flex-start;}
+  .stage{flex:1 1 240px;min-width:230px;display:flex;flex-direction:column;align-items:center;gap:12px;}
+  .canvas-frame{background:
+      conic-gradient(#1b2030 90deg,#11141f 90deg 180deg,#1b2030 180deg 270deg,#11141f 270deg) 0 0/22px 22px;
+    border:3px solid var(--line);box-shadow:inset 0 0 0 2px var(--shadow);line-height:0;}
+  canvas{display:block;image-rendering:pixelated;}
+  .stage-label{font-family:"Press Start 2P",monospace;font-size:10px;color:var(--gold);text-align:center;}
+  .controls{flex:1 1 240px;min-width:230px;display:flex;flex-direction:column;gap:6px;}
+  .ctrl-label{font-family:"Press Start 2P",monospace;font-size:10px;color:var(--blue);
+    margin:14px 0 9px;display:block;letter-spacing:.5px;}
+  .mats{display:flex;flex-wrap:wrap;gap:7px;}
+  .mat{font-family:"VT323",sans-serif;font-size:18px;cursor:pointer;background:var(--bg);
+    color:var(--ink);border:2px solid var(--line);padding:5px 10px;
+    box-shadow:3px 3px 0 var(--shadow);transition:all .05s;}
+  .mat:hover{transform:translate(-1px,-1px);}
+  .mat:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--shadow);}
+  .mat.on{background:var(--gold);color:var(--bg);border-color:var(--gold);font-weight:bold;}
+  input[type=range]{-webkit-appearance:none;width:100%;height:9px;background:var(--bg);
+    border:2px solid var(--line);outline:none;cursor:pointer;}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:17px;height:17px;
+    background:var(--gold);border:2px solid var(--shadow);cursor:pointer;}
+  input[type=range]::-moz-range-thumb{width:17px;height:17px;background:var(--gold);
+    border:2px solid var(--shadow);cursor:pointer;border-radius:0;}
+  .val{font-family:"Press Start 2P",monospace;font-size:10px;color:var(--gold);}
+  .hint{font-size:18px;color:var(--dim);margin-top:8px;min-height:3.2em;}
+
+  .twin{display:flex;gap:20px;flex-wrap:wrap;margin:20px 0;align-items:flex-start;}
+  .twin .box{display:flex;flex-direction:column;align-items:center;gap:8px;}
+  .twin canvas{border:2px solid var(--line);background:#11141f;}
+  .bad{color:var(--red);} .good{color:var(--green);}
+
+  .next{background:linear-gradient(135deg,var(--bg2),#2a230f);border:3px solid var(--gold);
+    box-shadow:8px 8px 0 var(--shadow);padding:26px 22px;margin-top:34px;}
+  .next h3{font-family:"Press Start 2P",monospace;font-size:14px;color:var(--gold);margin:0 0 16px;}
+  .next ul{margin:0;padding-left:4px;list-style:none;}
+  .next li{padding:7px 0;border-bottom:1px dashed var(--line);}
+  .next li::before{content:"▸ ";color:var(--gold);}
+  footer{max-width:780px;margin:0 auto;padding:34px 22px;color:var(--dim);font-size:16px;text-align:center;}
+  .pjump{font-family:"Press Start 2P",monospace;font-size:9px;color:var(--gold);}
+</style>
+</head>
+<body>
+
+<header>
+  <span class="badge">LESSON 06 · ADVANCED</span>
+  <h1 class="title">MATERIALS<span class="cn">进阶 · 材质与高级上色</span></h1>
+  <p class="lede">同一个球，凭光的行为变成金属、玻璃、木头、水、皮肤。形状从不改变。</p>
+</header>
+
+<div class="wrap">
+
+  <!-- 01 -->
+  <section>
+    <div class="kicker">CONCEPT 01 — LIGHT BEHAVIOR</div>
+    <h2>不是形状变了，是光变了</h2>
+    <p>判断材质的，不是轮廓，而是<b>光在表面怎么表现</b>：金属把光<b>反射</b>成一个刺眼的硬点，皮肤把光<b>散射</b>成柔和的一片，玻璃让光<b>穿透</b>。你画的其实不是"球"，而是<b>光打在球上的样子</b>。</p>
+    <p class="dim">下面这个球只有一种形状。点不同材质按钮，看它怎么"变"——再用三个滑块亲手调，体会每个旋钮对应你眼里的哪种"质感"。</p>
+
+    <!-- ===== LAB ===== -->
+    <div class="lab">
+      <div class="lab-top"><span class="dot"></span><span style="margin-left:38px">MATERIAL_LAB.exe</span></div>
+      <div class="lab-body">
+        <div class="stage">
+          <div class="canvas-frame"><canvas id="ball" width="240" height="240"></canvas></div>
+          <div class="stage-label" id="matLabel">哑光黏土</div>
+        </div>
+        <div class="controls">
+          <span class="ctrl-label">材质 / MATERIAL</span>
+          <div class="mats" id="mats">
+            <div class="mat on" data-m="clay">哑光</div>
+            <div class="mat" data-m="metal">金属</div>
+            <div class="mat" data-m="glass">玻璃</div>
+            <div class="mat" data-m="wood">木头</div>
+            <div class="mat" data-m="water">水滴</div>
+            <div class="mat" data-m="skin">皮肤</div>
+          </div>
+          <span class="ctrl-label">高光硬度 / SPECULAR <span class="val" id="hardVal"></span></span>
+          <input type="range" id="hard" min="2" max="60" value="3" step="1">
+          <span class="ctrl-label">高光强度 / INTENSITY <span class="val" id="strVal"></span></span>
+          <input type="range" id="str" min="0" max="100" value="35" step="1">
+          <span class="ctrl-label">边缘反光 / RIM <span class="val" id="rimVal"></span></span>
+          <input type="range" id="rim" min="0" max="100" value="10" step="1">
+          <div class="hint" id="hint">先点一圈材质感受差异，再回到「金属」把高光硬度拉低——你会看到它瞬间从钢球变成橡胶球。</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 -->
+  <section>
+    <div class="kicker">CONCEPT 02 — THE HIGHLIGHT</div>
+    <h2>高光，决定一切</h2>
+    <p>区分材质，<b>八成看高光（specular）</b>。两个变量最关键：</p>
+    <p class="dim"><b>① 硬度（大小）</b>：又小又硬的亮点 = 光滑、坚硬（金属、玻璃、湿润的眼睛）；又大又柔的一片 = 粗糙、柔软（皮肤、黏土、布）。<br><b>② 形状与位置</b>：金属的高光边缘锐利甚至带一条反光条；皮肤的高光是模糊的一坨。在实验室把同一个金属球的<b>高光硬度</b>拉到最低，它立刻"软"下来——这就是为什么橡胶和钢的差别，主要在那个亮点。</p>
+  </section>
+
+  <!-- 03 -->
+  <section>
+    <div class="kicker">CONCEPT 03 — CONTRAST &amp; BOUNCE</div>
+    <h2>对比度与反光</h2>
+    <p>第二关键是<b>明度跨度（对比度）</b>。金属和玻璃用<b>接近全黑到全白</b>的大跨度，所以显得"亮、硬、反光强"；皮肤和哑光物体把明度<b>压在中间一小段</b>，柔和不刺眼。</p>
+    <p class="dim">还有两种"加分光"让光滑/通透物体可信：<b>边缘反光（rim light）</b>——背光那侧的轮廓被环境光勾一条亮边（玻璃、水最明显，试试把 RIM 拉高）；<b>底部反光（bounce）</b>——地面把光弹回物体底部，金属和水滴的底下会再亮一块。哑光物体几乎没有这些，所以"闷"。</p>
+    <div class="callout"><b>皮肤的隐藏招</b>：在明暗交界处（terminator）会透出一点<b>暖红</b>——这是光钻进皮肤又散射出来的「次表面散射」。切到「皮肤」材质，注意中间那圈偏红的过渡，这一笔红是皮肤"活"的关键。</div>
+  </section>
+
+  <!-- 04 -->
+  <section>
+    <div class="kicker">CONCEPT 04 — ANTI-ALIASING</div>
+    <h2>手工抗锯齿与色阶断层</h2>
+    <p>低分辨率下曲线和色块边界会有<b>台阶（锯齿）</b>。手工抗锯齿（AA）就是<b>在台阶的拐角补一两个"中间色"像素</b>，让两块颜色之间过渡得柔和、不刺眼。</p>
+    <div class="twin">
+      <div class="box"><canvas id="aaHard" width="180" height="180"></canvas><span class="stage-label bad">✗ 硬边（锯齿明显）</span></div>
+      <div class="box"><canvas id="aaSoft" width="180" height="180"></canvas><span class="stage-label good">✓ 补中间色（顺滑）</span></div>
+    </div>
+    <p class="dim">右边只在边缘拐角处加了<b>一档中间灰</b>，圆就顺多了。三条铁律：<b>① 别过度</b>——通常一档中间色就够，糊一片反而脏；<b>② 沿外轮廓 AA 要小心</b>，会让物体看起来"长毛"，多数像素师只在内部色块交界做 AA；<b>③ 色阶之间的断层</b>，除了补中间色，也可以用上一节学过的<b>抖动（dithering）</b>来软化，不必新增颜色。</p>
+  </section>
+
+  <!-- next -->
+  <div class="next">
+    <h3>▶ NEXT — LESSON 07</h3>
+    <p style="margin-top:0" class="dim">单个物体你已经能画得有质感了。下一课让角色<b>走起来</b>：</p>
+    <ul>
+      <li>走 / 跑循环的四个关键姿势</li>
+      <li>重心、重量感、跟随动作（follow-through）</li>
+      <li>怎么让脚步落地"有分量"而不飘</li>
+    </ul>
+    <p class="dim" style="margin-bottom:0">说"下一课"继续。</p>
+  </div>
+
+</div>
+
+<footer>
+  <span class="pjump">PIXEL ADVANCED · 06</span><br>
+  把同一个球在「金属」和「皮肤」之间来回切——质感的全部秘密都在那个高光里 ✦
+</footer>
+
+<script>
+/* ===== 工具 ===== */
+function hx(n){return ('0'+Math.max(0,Math.min(255,Math.round(n))).toString(16)).slice(-2);}
+function rgb(r,g,b){return '#'+hx(r)+hx(g)+hx(b);}
+function parse(h){return [parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];}
+function mix(a,b,t){const A=parse(a),B=parse(b);return rgb(A[0]+(B[0]-A[0])*t,A[1]+(B[1]-A[1])*t,A[2]+(B[2]-A[2])*t);}
+
+/* ===== 材质配方（ramp 暗→亮 已做色相偏移）===== */
+const MAT={
+  clay:{label:'哑光黏土',ramp:['#3a1f2a','#6e3a3a','#a35a4a','#c98760','#e6b487','#f7e0c0'],spec:'#fff4e0',
+        hard:3,str:35,rim:10,bounce:.15,contrast:.95,sub:0,grain:0,transmit:0},
+  metal:{label:'抛光金属',ramp:['#14202e','#2b3c52','#51677e','#8a9bb0','#c6d2e0','#f2f8ff'],spec:'#ffffff',
+        hard:50,str:100,rim:32,bounce:.72,contrast:1.5,sub:0,grain:0,transmit:0},
+  glass:{label:'玻璃',ramp:['#0e2a33','#1c5560','#3f8f9c','#79c2cc','#bfeaef','#f0ffff'],spec:'#ffffff',
+        hard:42,str:100,rim:80,bounce:.4,contrast:1.15,sub:0,grain:0,transmit:.28},
+  wood:{label:'木头',ramp:['#2a1a0e','#4a2f17','#6e4a24','#936733','#bb8a4f','#e0b97a'],spec:'#ffe9c0',
+        hard:4,str:22,rim:8,bounce:.12,contrast:.85,sub:0,grain:1,transmit:0},
+  water:{label:'水滴',ramp:['#0a2240','#143f6e','#1f6cae','#4f9fe0','#9fd0f5','#eaf6ff'],spec:'#ffffff',
+        hard:50,str:100,rim:55,bounce:.82,contrast:1.2,sub:0,grain:0,transmit:.32},
+  skin:{label:'皮肤',ramp:['#3a1e22','#6e3a39','#a85d52','#d18a73','#ecc0a0','#ffe9d6'],spec:'#fff0e0',
+        hard:6,str:42,rim:14,bounce:.25,contrast:.82,sub:1,grain:0,transmit:0,sss:'#c75a4a'}
+};
+
+/* ===== 球体材质渲染 ===== */
+const SIZE=26, CX=(SIZE-1)/2, CY=(SIZE-1)/2, R=SIZE/2-1.3;
+function norm(v){const l=Math.hypot(v[0],v[1],v[2]);return [v[0]/l,v[1]/l,v[2]/l];}
+const L=norm([-0.5,-0.55,0.67]);
+const V=[0,0,1];
+const H=norm([L[0]+V[0],L[1]+V[1],L[2]+V[2]]);
+const BL=norm([0.15,0.75,0.35]); // 底部反光方向(从下往上偏)
+
+function render(cv, m){
+  const ramp=m.ramp, n=ramp.length;
+  const off=document.createElement('canvas');off.width=SIZE;off.height=SIZE;
+  const c=off.getContext('2d');
+  for(let y=0;y<SIZE;y++)for(let x=0;x<SIZE;x++){
+    const nx=(x-CX)/R, ny=(y-CY)/R, r2=nx*nx+ny*ny;
+    if(r2>1)continue;
+    const nz=Math.sqrt(Math.max(0,1-r2));
+    const edge=((x-1-CX)/R)**2+ny*ny>1||((x+1-CX)/R)**2+ny*ny>1||
+               nx*nx+((y-1-CY)/R)**2>1||nx*nx+((y+1-CY)/R)**2>1;
+    if(edge){ c.fillStyle=mix(ramp[0],'#000',0.4); c.fillRect(x,y,1,1); continue; }
+    // 法线 (注意屏幕 y 向下)
+    const N=[nx,ny,nz];
+    let d=Math.max(0,N[0]*L[0]+N[1]*L[1]+N[2]*L[2]);
+    let val=0.12+d*m.contrast;
+    if(m.transmit) val+=(1-r2)*m.transmit;                  // 透光：中心变亮
+    const bounce=Math.max(0,N[0]*BL[0]+N[1]*BL[1]+N[2]*BL[2]);
+    val+=bounce*m.bounce;
+    const rim=Math.pow(1-nz,3)*(m.rim/100)*1.6;             // 边缘反光
+    val+=rim;
+    if(val<0)val=0; if(val>1)val=1;
+    let idx=Math.min(n-1,Math.max(0,Math.floor(val*n)));
+    let col=ramp[idx];
+    // 次表面散射（皮肤）：交界处透红
+    if(m.sub && d>0.22 && d<0.5) col=mix(col,m.sss,0.45);
+    // 木纹：竖向暗纹
+    if(m.grain){ const g=Math.sin(x*1.5+Math.sin(y*0.5)*2.2); if(g>0.45) col=mix(col,ramp[Math.max(0,idx-1)],0.7); }
+    // 高光：N·H 的高次幂
+    const nh=Math.max(0,N[0]*H[0]+N[1]*H[1]+N[2]*H[2]);
+    const spec=Math.pow(nh,m.hard)*(m.str/100);
+    if(spec>0.55) col=m.spec;
+    else if(spec>0.22) col=mix(col,m.spec,0.6);
+    c.fillStyle=col; c.fillRect(x,y,1,1);
+  }
+  const scale=Math.floor(240/SIZE), dim=SIZE*scale;
+  cv.width=dim;cv.height=dim;
+  const ctx=cv.getContext('2d');ctx.imageSmoothingEnabled=false;
+  ctx.clearRect(0,0,dim,dim);ctx.drawImage(off,0,0,SIZE,SIZE,0,0,dim,dim);
+}
+
+/* ===== 状态：当前材质 + 三个可调参数 ===== */
+let curKey='clay';
+function cur(){ const base=MAT[curKey]; return Object.assign({},base,{
+  hard:+document.getElementById('hard').value,
+  str:+document.getElementById('str').value,
+  rim:+document.getElementById('rim').value }); }
+function syncSliders(m){
+  document.getElementById('hard').value=m.hard;
+  document.getElementById('str').value=m.str;
+  document.getElementById('rim').value=m.rim;
+  refreshVals();
+}
+function refreshVals(){
+  document.getElementById('hardVal').textContent=document.getElementById('hard').value;
+  document.getElementById('strVal').textContent=document.getElementById('str').value+'%';
+  document.getElementById('rimVal').textContent=document.getElementById('rim').value+'%';
+}
+function paint(){ render(document.getElementById('ball'), cur()); }
+
+document.querySelectorAll('.mat').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.mat').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on'); curKey=b.dataset.m;
+  document.getElementById('matLabel').textContent=MAT[curKey].label;
+  syncSliders(MAT[curKey]); paint();
+}));
+['hard','str','rim'].forEach(id=>document.getElementById(id).addEventListener('input',()=>{refreshVals();paint();}));
+
+/* ===== 抗锯齿演示（超采样求覆盖率）===== */
+function aaCircle(id, levels){
+  const cv=document.getElementById(id), G=18, cx=8.5, cy=8.5, rad=7.2;
+  const off=document.createElement('canvas');off.width=G;off.height=G;
+  const c=off.getContext('2d');
+  const FILL='#4fd6e0', MID='#2c7a86', BG='#11141f';
+  for(let y=0;y<G;y++)for(let x=0;x<G;x++){
+    let inside=0,total=0;
+    for(let sy=0;sy<4;sy++)for(let sx=0;sx<4;sx++){
+      const px=x+(sx+0.5)/4-cx, py=y+(sy+0.5)/4-cy; total++;
+      if(px*px+py*py<=rad*rad) inside++;
+    }
+    const cov=inside/total;
+    let col;
+    if(levels===1){ col= cov>=0.5?FILL:BG; }                 // 硬边
+    else { col= cov>=0.75?FILL : cov>=0.25?MID : BG; }       // 一档中间色
+    c.fillStyle=col;c.fillRect(x,y,1,1);
+  }
+  const scale=10;cv.width=G*scale;cv.height=G*scale;
+  const ctx=cv.getContext('2d');ctx.imageSmoothingEnabled=false;
+  ctx.drawImage(off,0,0,G,G,0,0,G*scale,G*scale);
+}
+
+/* init */
+refreshVals(); paint();
+aaCircle('aaHard',1);
+aaCircle('aaSoft',2);
+</script>
+</body>
+</html>

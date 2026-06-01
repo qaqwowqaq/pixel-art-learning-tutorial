@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>像素游戏进阶 · 第十课</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0e1018; --bg2:#161a28; --ink:#e7e3d8; --dim:#8a8fa3; --line:#2a2f44;
+    --red:#ff3b6b; --orange:#ff9d3c; --green:#3ee07a; --blue:#3fb6ff; --teal:#4fd6e0;
+    --purple:#c177f2; --eng:#4d7cff; --shadow:#05060b;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"VT323","PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;
+    line-height:1.85;font-size:21px;-webkit-font-smoothing:antialiased;position:relative;
+    background-image:
+      radial-gradient(circle at 18% -10%, rgba(77,124,255,.13), transparent 45%),
+      radial-gradient(circle at 90% 8%, rgba(63,182,255,.08), transparent 40%);}
+  body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:9999;
+    background:repeating-linear-gradient(0deg, rgba(0,0,0,.10) 0 1px, transparent 1px 3px);
+    mix-blend-mode:multiply;opacity:.5;}
+  .pix{font-family:"Press Start 2P",monospace;}
+  .wrap{max-width:780px;margin:0 auto;padding:0 22px 90px;}
+  header{padding:64px 22px 40px;max-width:780px;margin:0 auto;border-bottom:3px solid var(--line);}
+  .badge{display:inline-block;font-family:"Press Start 2P",monospace;font-size:10px;
+    color:#fff;background:var(--eng);padding:8px 12px;letter-spacing:1px;
+    box-shadow:4px 4px 0 var(--shadow);margin-bottom:26px;}
+  h1.title{font-family:"Press Start 2P",monospace;font-size:23px;line-height:1.6;
+    margin:0 0 18px;color:var(--ink);text-shadow:3px 3px 0 var(--shadow);}
+  h1.title .cn{display:block;font-size:30px;line-height:1.5;margin-top:14px;
+    font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;font-weight:800;
+    letter-spacing:2px;color:var(--teal);text-shadow:2px 2px 0 var(--shadow);}
+  .lede{color:var(--dim);font-size:22px;margin-top:6px;}
+  section{padding:44px 0 6px;border-bottom:2px dashed var(--line);}
+  .kicker{font-family:"Press Start 2P",monospace;font-size:11px;letter-spacing:1px;
+    color:var(--eng);display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+  .kicker::before{content:"";width:26px;height:11px;background:var(--eng);display:inline-block;}
+  h2{font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;
+    font-weight:800;font-size:30px;margin:0 0 8px;letter-spacing:1px;}
+  p{margin:14px 0;} .dim{color:var(--dim);} b,strong{color:var(--orange);font-weight:700;}
+  .tag{background:var(--bg2);border:2px solid var(--line);padding:1px 9px;
+    font-family:"Press Start 2P",monospace;font-size:11px;color:var(--eng);white-space:nowrap;}
+  code{font-family:"VT323",monospace;background:var(--bg2);border:1px solid var(--line);
+    padding:0 6px;color:var(--teal);font-size:19px;}
+  .callout{background:var(--bg2);border-left:5px solid var(--green);padding:14px 18px;margin:20px 0;
+    box-shadow:4px 4px 0 var(--shadow);font-size:20px;}
+
+  .lab{background:var(--bg2);border:3px solid var(--line);box-shadow:8px 8px 0 var(--shadow);
+    margin:30px 0;overflow:hidden;}
+  .lab-top{background:linear-gradient(90deg,var(--line),transparent);padding:12px 16px;
+    display:flex;align-items:center;gap:10px;font-family:"Press Start 2P",monospace;
+    font-size:11px;color:var(--ink);border-bottom:3px solid var(--line);}
+  .dot{width:11px;height:11px;background:var(--red);box-shadow:16px 0 0 var(--orange),32px 0 0 var(--green);}
+  .lab-body{padding:22px 18px 26px;}
+  .canvas-frame{border:3px solid var(--line);box-shadow:inset 0 0 0 2px var(--shadow);line-height:0;width:100%;background:#0a0a10;}
+  #stage{width:100%;height:auto;}
+  .ctrl-label{font-family:"Press Start 2P",monospace;font-size:10px;color:var(--blue);
+    margin:18px 0 9px;display:block;letter-spacing:.5px;}
+  .btn-row{display:flex;flex-wrap:wrap;gap:8px;}
+  button{font-family:"VT323",sans-serif;font-size:18px;cursor:pointer;background:var(--bg);
+    color:var(--ink);border:2px solid var(--line);padding:6px 11px;
+    box-shadow:3px 3px 0 var(--shadow);transition:all .05s;}
+  button:hover{transform:translate(-1px,-1px);}
+  button:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--shadow);}
+  button.on{background:var(--eng);color:#fff;border-color:var(--eng);font-weight:bold;}
+  button.warn.off{background:var(--bg);} button.warn:not(.on){border-color:var(--red);color:var(--red);}
+  input[type=range]{-webkit-appearance:none;width:100%;height:10px;background:var(--bg);
+    border:2px solid var(--line);outline:none;cursor:pointer;}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;
+    background:var(--eng);border:2px solid var(--shadow);cursor:pointer;}
+  input[type=range]::-moz-range-thumb{width:18px;height:18px;background:var(--eng);
+    border:2px solid var(--shadow);cursor:pointer;border-radius:0;}
+  .val{font-family:"Press Start 2P",monospace;font-size:11px;color:var(--eng);}
+  .hint{font-size:18px;color:var(--dim);margin-top:12px;min-height:2.6em;}
+
+  .twin{display:flex;gap:20px;flex-wrap:wrap;margin:20px 0;align-items:flex-start;}
+  .twin .box{display:flex;flex-direction:column;align-items:center;gap:8px;}
+  .twin canvas{border:2px solid var(--line);background:#11141f;image-rendering:pixelated;}
+  .bad{color:var(--red);} .good{color:var(--green);}
+  .figure{background:var(--bg2);border:3px solid var(--line);box-shadow:6px 6px 0 var(--shadow);
+    padding:18px;margin:22px 0;display:flex;flex-direction:column;align-items:center;gap:10px;}
+  .figure canvas{image-rendering:pixelated;border:2px solid var(--line);}
+  .figure .cap{font-size:18px;color:var(--dim);text-align:center;}
+
+  .next{background:linear-gradient(135deg,var(--bg2),#10183a);border:3px solid var(--eng);
+    box-shadow:8px 8px 0 var(--shadow);padding:26px 22px;margin-top:34px;}
+  .next h3{font-family:"Press Start 2P",monospace;font-size:14px;color:var(--eng);margin:0 0 16px;}
+  .next ul{margin:0;padding-left:4px;list-style:none;}
+  .next li{padding:7px 0;border-bottom:1px dashed var(--line);}
+  .next li::before{content:"▸ ";color:var(--eng);}
+  footer{max-width:780px;margin:0 auto;padding:34px 22px;color:var(--dim);font-size:16px;text-align:center;}
+  .pjump{font-family:"Press Start 2P",monospace;font-size:9px;color:var(--eng);}
+</style>
+</head>
+<body>
+
+<header>
+  <span class="badge">LESSON 10 · ADVANCED</span>
+  <h1 class="title">PIXEL PERFECT<span class="cn">进阶 · 进引擎：像素完美</span></h1>
+  <p class="lede">辛苦画的像素，进了引擎可能全毁在两件事上：非整数缩放，和亚像素抖动。</p>
+</header>
+
+<div class="wrap">
+
+  <!-- 01 -->
+  <section>
+    <div class="kicker">CONCEPT 01 — INTEGER SCALING</div>
+    <h2>整数缩放</h2>
+    <p>像素游戏内部跑在一个<b>低分辨率画布</b>上（比如 320×180），再放大铺满屏幕。放大倍数<b>必须是整数</b>（2×、3×、4×…）。一旦用了 <code>2.5×</code> 这种<b>非整数缩放</b>，就有一部分像素被放成 2 格、另一部分放成 3 格——同一张图里<b>像素大小不一</b>，移动时还会忽大忽小地"抖"。</p>
+    <p class="dim">下面左边是干净的 ×3 整数缩放，每个像素都是规整的正方块；右边 ×3.5，看那些<b>忽宽忽窄、忽高忽矮</b>的格子——这就是非整数缩放的硬伤。</p>
+    <div class="twin">
+      <div class="box"><canvas id="sc3" width="150" height="150"></canvas><span class="stage-label good">✓ ×3 整数（均匀）</span></div>
+      <div class="box"><canvas id="sc35" width="175" height="175"></canvas><span class="stage-label bad">✗ ×3.5 非整数（不均匀）</span></div>
+    </div>
+  </section>
+
+  <!-- 02 -->
+  <section>
+    <div class="kicker">CONCEPT 02 — SUB-PIXEL SHIMMER</div>
+    <h2>像素完美相机与亚像素抖动</h2>
+    <p>更隐蔽的坑：角色以<b>非整数速度</b>移动（比如每帧 0.35 像素），如果引擎不把位置<b>对齐到像素网格</b>，边缘像素会在帧与帧之间反复"借位"，整条轮廓<b>抖动、爬行（shimmer / crawling）</b>——就像第三课的"像素沸腾"，但这次是移动造成的。</p>
+    <p class="dim">解法：用<b>像素完美相机</b>，把相机和精灵的位置在渲染前<b>吸附到整数像素</b>。下面让小球横向移动，按住 <span class="tag">像素对齐</span> 开关切换感受：</p>
+
+    <!-- ===== LAB ===== -->
+    <div class="lab">
+      <div class="lab-top"><span class="dot"></span><span style="margin-left:38px">PIXEL_PERFECT.exe</span></div>
+      <div class="lab-body">
+        <div class="canvas-frame"><canvas id="stage" width="384" height="150"></canvas></div>
+        <span class="ctrl-label">设置 / SETTINGS</span>
+        <div class="btn-row">
+          <button id="snapBtn" class="on">📌 像素对齐</button>
+          <button id="intBtn" class="on">▦ 整数缩放</button>
+          <button id="gridBtn">⊞ 像素网格</button>
+        </div>
+        <span class="ctrl-label">移动速度 / SPEED <span class="val" id="spVal">0.40 px/帧</span></span>
+        <input type="range" id="speed" min="5" max="120" value="40" step="1">
+        <div class="hint" id="hint">关掉「像素对齐」：小球以非整数速度移动时，边缘开始发糊、抖动。打开它，边缘恢复脆硬、只做整像素跳进。</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 -->
+  <section>
+    <div class="kicker">CONCEPT 03 — IMPORT SETTINGS</div>
+    <h2>导入设置：把过滤关成"最近邻"</h2>
+    <p>素材导入引擎时，<b>纹理过滤必须设成最近邻 / 点采样（Nearest / Point）</b>，绝不能用默认的双线性（Linear / Bilinear）——否则像素边缘会被引擎自动模糊，第一课讲的硬边方块全没了。这是新手最常见、也最容易漏的一步。</p>
+    <p class="dim">配套要关掉的几项：<b>Mipmap</b>（多级渐远纹理，会让缩小后发糊）、<b>纹理压缩</b>（会污染纯色），以及把图集的 <b>filter</b> 也设为点采样。各引擎的位置：Godot 在导入面板把 <code>Filter</code> 设 Off / 在项目设置里开 <code>Snap 2D Transforms to Pixel</code>；Unity 把纹理 <code>Filter Mode</code> 设 Point、<code>Compression</code> 设 None，并加 <code>Pixel Perfect Camera</code> 组件；GameMaker 关掉 <code>Interpolate colours</code>。</p>
+  </section>
+
+  <!-- 04 -->
+  <section>
+    <div class="kicker">CONCEPT 04 — ATLAS &amp; AUTOTILE</div>
+    <h2>精灵图集与自动连接</h2>
+    <p>为了性能，引擎会把许多小图打包进一张大图——<b>精灵图集 / 纹理图集（atlas）</b>，一次性上传 GPU。但有个陷阱：<b>漏色（texture bleeding）</b>——采样到了相邻贴图的边缘像素，于是精灵边上出现一条不该有的细线。</p>
+    <div class="figure">
+      <canvas id="atlas" width="360" height="120"></canvas>
+      <div class="cap">图集里每块之间留 <b style="color:var(--orange)">1～2px 间距（padding）</b>，并把边缘像素<b>向外延伸一圈（extrude）</b>，就能根治漏色。</div>
+    </div>
+    <p class="dim">瓦片地图同理：第四课手搓的自动连接，在引擎里是现成功能——Godot 的 <code>TileMap</code> + Terrain、Unity 的 <code>Tilemap</code> + Rule Tile、或直接导入 <b>Tiled</b> 工程。你只管刷"这片是水"，墙角河岸引擎自动接好。记得给 tileset 也留 padding/extrude。</p>
+    <div class="callout">一句话工作流：<b>低分辨率设计 → 整数缩放铺屏 → 相机/精灵吸附像素 → 过滤设最近邻、关 mipmap → 图集留 padding</b>。这五条做到，你的像素在引擎里就和在 Aseprite 里一样脆。</div>
+  </section>
+
+  <!-- next -->
+  <div class="next">
+    <h3>▶ FINAL — LESSON 11</h3>
+    <p style="margin-top:0" class="dim">进阶篇完结篇，给整个系列收尾：</p>
+    <ul>
+      <li>Aseprite 进阶：脚本、tag、slice、tileset 导出</li>
+      <li>素材管理与精灵表导出工作流</li>
+      <li>AI 生成图该放在流程的哪一环（回到你最初的问题）</li>
+    </ul>
+    <p class="dim" style="margin-bottom:0">说"下一课"上最后一课。</p>
+  </div>
+
+</div>
+
+<footer>
+  <span class="pjump">PIXEL ADVANCED · 10</span><br>
+  关掉「像素对齐」盯着小球边缘——那一抖，就是无数像素游戏上线后被吐槽的元凶 ✦
+</footer>
+
+<script>
+/* ===== 小球精灵（带硬边轮廓，便于看抖动）===== */
+function makeBall(SZ){
+  const off=document.createElement('canvas');off.width=SZ;off.height=SZ;
+  const c=off.getContext('2d');
+  const cx=(SZ-1)/2,cy=(SZ-1)/2,R=SZ/2-0.6;
+  const RAMP=['#1a3a52','#2f6e8c','#4fa8c8','#9fe0ee','#eaffff'];
+  for(let y=0;y<SZ;y++)for(let x=0;x<SZ;x++){
+    const nx=(x-cx)/R,ny=(y-cy)/R,r2=nx*nx+ny*ny; if(r2>1)continue;
+    const edge=((x-1-cx)/R)**2+ny*ny>1||((x+1-cx)/R)**2+ny*ny>1||
+               nx*nx+((y-1-cy)/R)**2>1||nx*nx+((y+1-cy)/R)**2>1;
+    if(edge){c.fillStyle='#0a1622';c.fillRect(x,y,1,1);continue;}
+    const nz=Math.sqrt(Math.max(0,1-r2));let i=nx*-0.55+ny*-0.55+nz*0.62;if(i<0)i=0;
+    const idx=i<=0.18?0:i<=0.44?1:i<=0.68?2:i<=0.9?3:4;
+    c.fillStyle=RAMP[idx];c.fillRect(x,y,1,1);
+  }
+  return off;
+}
+
+/* ===== 主实验室 ===== */
+const IW=64, IH=25, BALL=17;
+const ball=makeBall(BALL);
+const stage=document.getElementById('stage');
+const dctx=stage.getContext('2d');
+const intC=document.createElement('canvas'); intC.width=IW; intC.height=IH;
+const ictx=intC.getContext('2d');
+const DISP_W=384;
+
+let st={x:4, speed:0.40, snap:true, integer:true, grid:false};
+
+function renderStage(){
+  // 内部低分辨率场景
+  ictx.imageSmoothingEnabled=false;
+  ictx.fillStyle='#cfd6dd'; ictx.fillRect(0,0,IW,IH);          // 浅色背景便于看边缘
+  ictx.fillStyle='#b6bdc6'; for(let x=0;x<IW;x+=8) ictx.fillRect(x,0,1,IH); // 淡参考竖线
+  const by=Math.round((IH-BALL)/2);
+  if(st.snap){ ictx.imageSmoothingEnabled=false; ictx.drawImage(ball,Math.round(st.x),by); }
+  else { ictx.imageSmoothingEnabled=true; ictx.drawImage(ball,st.x,by); } // 亚像素 → 模糊借位
+  // 放大到显示
+  dctx.imageSmoothingEnabled=false;
+  dctx.fillStyle='#0a0a10'; dctx.fillRect(0,0,stage.width,stage.height);
+  const sc = st.integer? 6 : 5.4;
+  const w=IW*sc, h=IH*sc, ox=Math.round((DISP_W-w)/2), oy=Math.round((stage.height-h)/2);
+  dctx.drawImage(intC,0,0,IW,IH, ox,oy, w,h);
+  if(st.grid){ dctx.strokeStyle='rgba(77,124,255,.35)'; dctx.lineWidth=1;
+    for(let i=0;i<=IW;i++){const gx=ox+Math.round(i*sc)+.5; dctx.beginPath();dctx.moveTo(gx,oy);dctx.lineTo(gx,oy+h);dctx.stroke();}
+    for(let j=0;j<=IH;j++){const gy=oy+Math.round(j*sc)+.5; dctx.beginPath();dctx.moveTo(ox,gy);dctx.lineTo(ox+w,gy);dctx.stroke();}
+  }
+}
+let last=0;
+function loop(ts){ if(!last)last=ts; const dt=Math.min(50,ts-last); last=ts;
+  st.x += st.speed*(dt/16.67); if(st.x>IW-BALL+2) st.x=-2;
+  renderStage(); requestAnimationFrame(loop); }
+
+const snapBtn=document.getElementById('snapBtn');
+snapBtn.addEventListener('click',()=>{st.snap=!st.snap;snapBtn.classList.toggle('on',st.snap);
+  document.getElementById('hint').textContent=st.snap
+    ?'像素对齐开：位置吸附到整数像素，边缘脆硬，只做整像素跳进。这就是像素完美相机。'
+    :'像素对齐关：非整数位置让边缘逐帧借位、发糊、抖动——上线被吐槽的元凶。';});
+const intBtn=document.getElementById('intBtn');
+intBtn.addEventListener('click',()=>{st.integer=!st.integer;intBtn.classList.toggle('on',st.integer);
+  intBtn.textContent=st.integer?'▦ 整数缩放':'▦ 非整数 ×5.4';});
+const gridBtn=document.getElementById('gridBtn');
+gridBtn.addEventListener('click',()=>{st.grid=!st.grid;gridBtn.classList.toggle('on',st.grid);});
+const speed=document.getElementById('speed');
+speed.addEventListener('input',()=>{st.speed=+speed.value/100;
+  document.getElementById('spVal').textContent=st.speed.toFixed(2)+' px/帧';});
+
+/* ===== 整数 vs 非整数缩放对比 ===== */
+const icon=makeBall(14);
+function scaleDemo(id,factor){const cv=document.getElementById(id),c=cv.getContext('2d');
+  c.imageSmoothingEnabled=false; c.clearRect(0,0,cv.width,cv.height);
+  c.drawImage(icon,0,0,14,14,0,0,14*factor,14*factor);}
+scaleDemo('sc3',3);
+scaleDemo('sc35',3.5);
+
+/* ===== 图集 padding 示意 ===== */
+(function(){const cv=document.getElementById('atlas'),c=cv.getContext('2d');
+  c.imageSmoothingEnabled=false;
+  c.fillStyle='#0a0a10';c.fillRect(0,0,cv.width,cv.height);
+  const tiles=['#3ee07a','#ff9d3c','#ff3b6b','#4fd6e0','#c177f2','#ffd23f'];
+  const T=12, pad=2, scale=4, x0=2, y0=2;
+  for(let i=0;i<6;i++){
+    const gx=x0+i*(T+pad);
+    // 橙色高亮：每块之间的 padding 间隙
+    if(i<6){ c.fillStyle='rgba(255,157,60,.55)'; c.fillRect((gx+T)*scale, y0*scale, pad*scale, T*scale); }
+    // 瓦片本体
+    c.fillStyle=tiles[i]; c.fillRect(gx*scale, y0*scale, T*scale, T*scale);
+    c.fillStyle='rgba(255,255,255,.22)'; c.fillRect(gx*scale, y0*scale, T*scale, 2*scale);     // 顶部高光
+    c.fillStyle='rgba(0,0,0,.28)';   c.fillRect(gx*scale, (y0+T-2)*scale, T*scale, 2*scale);   // 底部暗
+  }
+})();
+
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

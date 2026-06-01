@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>像素游戏基础 · 第四课（完结）</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0e1018; --bg2:#161a28; --ink:#e7e3d8; --dim:#8a8fa3; --line:#2a2f44;
+    --red:#ff3b6b; --orange:#ff9d3c; --green:#3ee07a; --blue:#3fb6ff; --teal:#4fd6e0;
+    --purple:#c177f2; --shadow:#05060b;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"VT323","PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;
+    line-height:1.85;font-size:21px;-webkit-font-smoothing:antialiased;position:relative;
+    background-image:
+      radial-gradient(circle at 18% -10%, rgba(193,119,242,.10), transparent 45%),
+      radial-gradient(circle at 90% 8%, rgba(63,182,255,.08), transparent 40%);}
+  body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:9999;
+    background:repeating-linear-gradient(0deg, rgba(0,0,0,.10) 0 1px, transparent 1px 3px);
+    mix-blend-mode:multiply;opacity:.5;}
+  .pix{font-family:"Press Start 2P",monospace;}
+  .wrap{max-width:780px;margin:0 auto;padding:0 22px 90px;}
+  header{padding:64px 22px 40px;max-width:780px;margin:0 auto;border-bottom:3px solid var(--line);}
+  .badge{display:inline-block;font-family:"Press Start 2P",monospace;font-size:10px;
+    color:var(--bg);background:var(--purple);padding:8px 12px;letter-spacing:1px;
+    box-shadow:4px 4px 0 var(--shadow);margin-bottom:26px;}
+  h1.title{font-family:"Press Start 2P",monospace;font-size:24px;line-height:1.6;
+    margin:0 0 18px;color:var(--ink);text-shadow:3px 3px 0 var(--shadow);}
+  h1.title .cn{display:block;font-size:30px;line-height:1.5;margin-top:14px;
+    font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;font-weight:800;
+    letter-spacing:2px;color:var(--teal);text-shadow:2px 2px 0 var(--shadow);}
+  .lede{color:var(--dim);font-size:22px;margin-top:6px;}
+  section{padding:44px 0 6px;border-bottom:2px dashed var(--line);}
+  .kicker{font-family:"Press Start 2P",monospace;font-size:11px;letter-spacing:1px;
+    color:var(--purple);display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+  .kicker::before{content:"";width:26px;height:11px;background:var(--purple);display:inline-block;}
+  h2{font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;
+    font-weight:800;font-size:30px;margin:0 0 8px;letter-spacing:1px;}
+  p{margin:14px 0;} .dim{color:var(--dim);} b,strong{color:var(--teal);font-weight:700;}
+  .tag{background:var(--bg2);border:2px solid var(--line);padding:1px 9px;
+    font-family:"Press Start 2P",monospace;font-size:11px;color:var(--purple);white-space:nowrap;}
+  .callout{background:var(--bg2);border-left:5px solid var(--green);padding:14px 18px;margin:20px 0;
+    box-shadow:4px 4px 0 var(--shadow);font-size:20px;}
+
+  .lab{background:var(--bg2);border:3px solid var(--line);box-shadow:8px 8px 0 var(--shadow);
+    margin:30px 0;overflow:hidden;}
+  .lab-top{background:linear-gradient(90deg,var(--line),transparent);padding:12px 16px;
+    display:flex;align-items:center;gap:10px;font-family:"Press Start 2P",monospace;
+    font-size:11px;color:var(--ink);border-bottom:3px solid var(--line);}
+  .dot{width:11px;height:11px;background:var(--red);box-shadow:16px 0 0 var(--orange),32px 0 0 var(--green);}
+  .lab-body{padding:22px 18px 26px;}
+  .canvas-frame{border:3px solid var(--line);box-shadow:inset 0 0 0 2px var(--shadow);
+    line-height:0;width:100%;}
+  canvas{display:block;image-rendering:pixelated;}
+  #map{width:100%;height:auto;touch-action:none;cursor:crosshair;}
+  .ctrl-label{font-family:"Press Start 2P",monospace;font-size:10px;color:var(--blue);
+    margin:18px 0 9px;display:block;letter-spacing:.5px;}
+  .brushes{display:flex;flex-wrap:wrap;gap:8px;}
+  .brush{display:flex;align-items:center;gap:7px;font-family:"VT323",sans-serif;font-size:19px;
+    cursor:pointer;background:var(--bg);color:var(--ink);border:2px solid var(--line);
+    padding:6px 11px;box-shadow:3px 3px 0 var(--shadow);transition:all .05s;}
+  .brush:hover{transform:translate(-1px,-1px);}
+  .brush:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--shadow);}
+  .brush.on{border-color:var(--purple);box-shadow:0 0 0 2px var(--purple),3px 3px 0 var(--shadow);}
+  .sw{width:16px;height:16px;display:inline-block;border:2px solid var(--shadow);}
+  .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;}
+  button{font-family:"VT323",sans-serif;font-size:19px;cursor:pointer;background:var(--bg);
+    color:var(--ink);border:2px solid var(--line);padding:6px 12px;
+    box-shadow:3px 3px 0 var(--shadow);transition:all .05s;}
+  button:hover{transform:translate(-1px,-1px);}
+  button:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--shadow);}
+  button.on{background:var(--purple);color:var(--bg);border-color:var(--purple);font-weight:bold;}
+  .hint{font-size:18px;color:var(--dim);margin-top:10px;}
+
+  .twin{display:flex;gap:20px;flex-wrap:wrap;margin:20px 0;}
+  .twin .box{display:flex;flex-direction:column;align-items:center;gap:8px;}
+  .twin canvas{border:2px solid var(--line);}
+  .bad{color:var(--red);} .good{color:var(--green);}
+
+  .grid3{display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin:18px 0;}
+  .grid3 .box{display:flex;flex-direction:column;align-items:center;gap:7px;}
+  .grid3 canvas{border:2px solid var(--line);}
+  .grid3 .stage-label{font-family:"Press Start 2P",monospace;font-size:9px;color:var(--dim);}
+
+  .fin{background:linear-gradient(135deg,var(--bg2),#1d1530);border:3px solid var(--purple);
+    box-shadow:8px 8px 0 var(--shadow);padding:28px 24px;margin-top:34px;text-align:center;}
+  .fin h3{font-family:"Press Start 2P",monospace;font-size:15px;color:var(--purple);margin:0 0 18px;line-height:1.6;}
+  .fin .row{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:18px 0;}
+  .fin .chip{font-family:"Press Start 2P",monospace;font-size:9px;padding:8px 10px;
+    border:2px solid var(--line);background:var(--bg);color:var(--teal);}
+  footer{max-width:780px;margin:0 auto;padding:34px 22px;color:var(--dim);font-size:16px;text-align:center;}
+  .pjump{font-family:"Press Start 2P",monospace;font-size:9px;color:var(--purple);}
+</style>
+</head>
+<body>
+
+<header>
+  <span class="badge">LESSON 04 / 4 · FINALE</span>
+  <h1 class="title">THE WORLD<span class="cn">像素游戏 · 完结篇</span></h1>
+  <p class="lede">用一小堆方块拼出整个世界：瓦片 → 无缝拼接 → 自动连接 → 放进角色。下面这张地图你可以直接画。</p>
+</header>
+
+<div class="wrap">
+
+  <!-- 01 -->
+  <section>
+    <div class="kicker">CONCEPT 01 — TILES</div>
+    <h2>瓦片与瓦片地图</h2>
+    <p>整张游戏地图不是一张大图，而是用一小套<b>瓦片（tile）</b>——同样尺寸的小方块——像贴马赛克一样拼出来的。地图数据本身只是一张<b>「第几号瓦片」的编号表格</b>，所以又省内存又好改。</p>
+    <p class="dim">下面就是一个真的瓦片地图编辑器。选个笔刷，在地图上<b>按住拖动</b>就能画。试试用「水」笔刷画个池塘——注意看接下来会发生什么。</p>
+
+    <!-- ===== MAP EDITOR ===== -->
+    <div class="lab">
+      <div class="lab-top"><span class="dot"></span><span style="margin-left:38px">TILEMAP_EDITOR.exe</span></div>
+      <div class="lab-body">
+        <div class="canvas-frame"><canvas id="map" width="512" height="384"></canvas></div>
+
+        <span class="ctrl-label">笔刷 / BRUSH</span>
+        <div class="brushes" id="brushes">
+          <div class="brush on" data-b="grass"><span class="sw" style="background:#4a7a34"></span>草地</div>
+          <div class="brush" data-b="water"><span class="sw" style="background:#2a6cc0"></span>水（自动海岸）</div>
+          <div class="brush" data-b="path"><span class="sw" style="background:#b08a4f"></span>小路</div>
+          <div class="brush" data-b="tree"><span class="sw" style="background:#2f6b2c"></span>树</div>
+          <div class="brush" data-b="hero"><span class="sw" style="background:#e0561c"></span>英雄</div>
+          <div class="brush" data-b="erase"><span class="sw" style="background:#11141f"></span>橡皮</div>
+        </div>
+        <div class="actions">
+          <button id="exampleBtn">⊞ 示例地图</button>
+          <button id="clearBtn">✕ 全清</button>
+          <button id="seamBtn">▦ 显示瓦片网格</button>
+        </div>
+        <div class="hint">提示：树和英雄是「贴在草地上的物件」，会盖在地形之上；橡皮先擦物件、没物件则还原成草地。</div>
+      </div>
+    </div>
+    <div class="callout">看到了吗——你只画「水」，<b>沙滩海岸线是自动生出来的</b>。这就是第 3 个概念，先记着这个惊喜，下面解释原理。</div>
+  </section>
+
+  <!-- 02 -->
+  <section>
+    <div class="kicker">CONCEPT 02 — SEAMLESS</div>
+    <h2>无缝拼接</h2>
+    <p>瓦片要能<b>无限重复而不露马脚</b>，关键是<b>边缘要能接上</b>：一块瓦片的右边缘必须和它左边缘对得上，上下同理。否则平铺时每块之间会出现一条条<b>接缝（seam）</b>，整片地面像贴了网格。</p>
+    <div class="twin">
+      <div class="box"><canvas id="seamGood" width="192" height="192"></canvas><span class="stage-label good">✓ 无缝瓦片</span></div>
+      <div class="box"><canvas id="seamBad" width="192" height="192"></canvas><span class="stage-label bad">✗ 边缘没对上 → 网格感</span></div>
+    </div>
+    <p class="dim">两边都是同一块瓦片重复 6×6。左边边缘连续，看不出格子；右边瓦片自带了亮边，一平铺就暴露成规整的网格——这也是为什么<b>不能直接拿没对齐的 AI 图来切瓦片</b>，块边界根本接不上。</p>
+  </section>
+
+  <!-- 03 -->
+  <section>
+    <div class="kicker">CONCEPT 03 — AUTO-TILING</div>
+    <h2>自动连接（auto-tiling）</h2>
+    <p>手动给每段水边挑「直边/内凹角/外凸角」哪块图块，会累死。<b>自动连接</b>让程序代劳：它看每个格子<b>四周邻居是什么</b>，自动选出该用的边角瓦片。</p>
+    <p class="dim">原理是<b>位掩码（bitmask）</b>：把「上下左右邻居是不是同类」编码成一个数字，每种组合对应一块预先画好的瓦片。下面是水格子根据邻居自动切换的几种形态——这正是你在编辑器里画水时背后发生的事：</p>
+    <div class="grid3" id="autoDemo"></div>
+    <p class="dim">所以引擎里（Godot、Tiled、Unity 都有这功能）你只管刷「这片是水」，墙角、河岸、路口的图块都自动接好。你画地图，它管细节。</p>
+  </section>
+
+  <!-- 04 -->
+  <section>
+    <div class="kicker">CONCEPT 04 — PUT IT TOGETHER</div>
+    <h2>把角色放进世界</h2>
+    <p>最后一步：用「英雄」笔刷把角色摆到地图上。注意它是<b>独立的一层</b>盖在地形上的——这引出瓦片地图的另一半作用：<b>分层</b>。</p>
+    <p class="dim">一张地图通常至少两层：<b>视觉层</b>（你看到的草、水、树）和<b>碰撞层</b>（一张隐形表格，标记哪格能走、哪格挡路）。同一份瓦片数据顺便就告诉了游戏：水不能走、树挡路、草和路可以走。所以瓦片地图既是「画面」也是「关卡逻辑」。</p>
+    <div class="callout">四课连起来就是一条完整链路：<b>像素 → 形体/明暗 → 动画 → 世界</b>。你现在已经能看懂任何一款 2D 像素游戏是怎么搭出来的了。</div>
+  </section>
+
+  <!-- finale -->
+  <div class="fin">
+    <h3>✦ 课程完结 ✦</h3>
+    <div class="row">
+      <span class="chip">01 像素</span>
+      <span class="chip">02 体积·光</span>
+      <span class="chip">03 动画</span>
+      <span class="chip">04 世界</span>
+    </div>
+    <p class="dim" style="margin:0">动手建议：装个 <b style="color:var(--purple)">Aseprite</b>（或免费的 LibreSprite）画几个 16×16 小物件，再用 <b style="color:var(--purple)">Tiled</b> 拼张地图。把这四课的概念在真工具里走一遍，就彻底是你的了。</p>
+    <p class="dim" style="margin-bottom:0;margin-top:14px">想深入哪一块（比如角色行走动画、调色板理论、或上手 Godot），随时跟我说。</p>
+  </div>
+
+</div>
+
+<footer>
+  <span class="pjump">PIXEL BASICS · 04 · COMPLETE</span><br>
+  先点「示例地图」，再用水笔刷改改海岸，自动连接的爽感就来了 ✦
+</footer>
+
+<script>
+/* ============ 瓦片地图编辑器 ============ */
+const COLS=16, ROWS=12, T=8;            // 16×12 格，每格 8×8 像素
+const C={
+  grassA:'#4a7a34', grassB:'#3f6b2c', grassC:'#5d9440',
+  waterA:'#2a6cc0', waterB:'#1f539a', waterC:'#6fb0ec',
+  pathA:'#b08a4f',  pathB:'#967130',  pathC:'#c8a36b',
+  sand:'#e3cd92',
+  trunk:'#5a3a1a', leafA:'#2f6b2c', leafB:'#3f8a3a', leafC:'#56a84a',
+  ball:['#5a1208','#a3290f','#e0561c','#ff9d3c','#ffe0a8'], ballO:'#2a0a04'
+};
+function hash(x,y){ return (Math.sin(x*12.9898+y*78.233)*43758.5453)%1; }
+
+let terrain=[], obj=[];
+function blank(){ terrain=[]; obj=[];
+  for(let r=0;r<ROWS;r++){ terrain.push(Array(COLS).fill('grass')); obj.push(Array(COLS).fill(null)); } }
+function tAt(r,c){ if(r<0||c<0||r>=ROWS||c>=COLS) return 'water'; return terrain[r][c]; }
+
+/* —— 单格绘制 —— */
+function px(ctx,x,y,col){ ctx.fillStyle=col; ctx.fillRect(x,y,1,1); }
+function drawGrass(ctx,ox,oy,r,c){
+  ctx.fillStyle=C.grassA; ctx.fillRect(ox,oy,T,T);
+  const h=hash(c,r);
+  if(h>0.6){ px(ctx,ox+((h*7)|0)%T,oy+((h*13)|0)%T,C.grassB); }
+  if(h<0.4){ px(ctx,ox+((h*17)|0)%T,oy+((h*11)|0)%T,C.grassC); }
+}
+function drawPath(ctx,ox,oy,r,c){
+  ctx.fillStyle=C.pathA; ctx.fillRect(ox,oy,T,T);
+  const h=hash(c+5,r+5);
+  px(ctx,ox+((h*7)|0)%T,oy+((h*5)|0)%T,C.pathB);
+  if(h>0.5)px(ctx,ox+((h*13)|0)%T,oy+((h*3)|0)%T,C.pathC);
+}
+function drawWater(ctx,ox,oy,r,c){
+  ctx.fillStyle=C.waterA; ctx.fillRect(ox,oy,T,T);
+  const h=hash(c+9,r+9);
+  if(h>0.55){ ctx.fillStyle=C.waterC; ctx.fillRect(ox+1+((h*4)|0),oy+2+((h*3)|0),2,1); }
+  px(ctx,ox+T-2,oy+T-3,C.waterB);
+  // —— 自动海岸：邻居非水则铺沙 ——
+  const up=tAt(r-1,c)!=='water', dn=tAt(r+1,c)!=='water';
+  const lf=tAt(r,c-1)!=='water', rt=tAt(r,c+1)!=='water';
+  ctx.fillStyle=C.sand;
+  if(up) ctx.fillRect(ox,oy,T,2);
+  if(dn) ctx.fillRect(ox,oy+T-2,T,2);
+  if(lf) ctx.fillRect(ox,oy,2,T);
+  if(rt) ctx.fillRect(ox+T-2,oy,2,T);
+  // 内凹角：斜邻是陆地、两正交邻居都是水
+  if(!up&&!lf&&tAt(r-1,c-1)!=='water') ctx.fillRect(ox,oy,2,2);
+  if(!up&&!rt&&tAt(r-1,c+1)!=='water') ctx.fillRect(ox+T-2,oy,2,2);
+  if(!dn&&!lf&&tAt(r+1,c-1)!=='water') ctx.fillRect(ox,oy+T-2,2,2);
+  if(!dn&&!rt&&tAt(r+1,c+1)!=='water') ctx.fillRect(ox+T-2,oy+T-2,2,2);
+}
+function drawTree(ctx,ox,oy){
+  ctx.fillStyle=C.trunk; ctx.fillRect(ox+3,oy+5,2,3);
+  ctx.fillStyle=C.leafA; ctx.fillRect(ox+1,oy+1,6,5);
+  ctx.fillStyle=C.leafB; ctx.fillRect(ox+2,oy+1,4,3);
+  ctx.fillStyle=C.leafC; ctx.fillRect(ox+2,oy+1,2,2);
+}
+function drawHero(ctx,ox,oy){
+  const cx=3.5,cy=4,rad=3;
+  for(let y=0;y<T;y++)for(let x=0;x<T;x++){
+    const nx=(x-cx)/rad, ny=(y-cy)/rad, r2=nx*nx+ny*ny;
+    if(r2>1)continue;
+    const edge=((x-1-cx)/rad)**2+ny*ny>1||((x+1-cx)/rad)**2+ny*ny>1||
+               nx*nx+((y-1-cy)/rad)**2>1||nx*nx+((y+1-cy)/rad)**2>1;
+    if(edge){ px(ctx,ox+x,oy+y,C.ballO); continue; }
+    let nz=Math.sqrt(Math.max(0,1-r2));
+    let i=nx*-0.55+ny*-0.55+nz*0.62; if(i<0)i=0;
+    let idx=i<=0.16?0:i<=0.42?1:i<=0.66?2:i<=0.88?3:4;
+    px(ctx,ox+x,oy+y,C.ball[idx]);
+  }
+}
+
+const map=document.getElementById('map');
+const mctx=map.getContext('2d');
+const off=document.createElement('canvas'); off.width=COLS*T; off.height=ROWS*T;
+const octx=off.getContext('2d');
+let showGrid=false;
+
+function render(){
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+    const ox=c*T, oy=r*T, t=terrain[r][c];
+    if(t==='water') drawWater(octx,ox,oy,r,c);
+    else if(t==='path') drawPath(octx,ox,oy,r,c);
+    else drawGrass(octx,ox,oy,r,c);
+    const o=obj[r][c];
+    if(o==='tree') drawTree(octx,ox,oy);
+    else if(o==='hero') drawHero(octx,ox,oy);
+  }
+  mctx.imageSmoothingEnabled=false;
+  mctx.clearRect(0,0,map.width,map.height);
+  mctx.drawImage(off,0,0,COLS*T,ROWS*T,0,0,map.width,map.height);
+  if(showGrid){
+    const sx=map.width/COLS, sy=map.height/ROWS;
+    mctx.strokeStyle='rgba(0,0,0,.35)'; mctx.lineWidth=1;
+    for(let i=0;i<=COLS;i++){mctx.beginPath();mctx.moveTo(i*sx+.5,0);mctx.lineTo(i*sx+.5,map.height);mctx.stroke();}
+    for(let j=0;j<=ROWS;j++){mctx.beginPath();mctx.moveTo(0,j*sy+.5);mctx.lineTo(map.width,j*sy+.5);mctx.stroke();}
+  }
+}
+
+/* —— 笔刷 —— */
+let brush='grass';
+document.querySelectorAll('.brush').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.brush').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on'); brush=b.dataset.b;
+}));
+function paintCell(r,c){
+  if(r<0||c<0||r>=ROWS||c>=COLS)return;
+  if(brush==='tree'||brush==='hero'){ obj[r][c]=brush; }
+  else if(brush==='erase'){ if(obj[r][c])obj[r][c]=null; else terrain[r][c]='grass'; }
+  else { terrain[r][c]=brush; if(brush==='water')obj[r][c]=null; }
+  render();
+}
+let painting=false;
+function cellFromEvent(e){
+  const rect=map.getBoundingClientRect();
+  const c=Math.floor((e.clientX-rect.left)/rect.width*COLS);
+  const r=Math.floor((e.clientY-rect.top)/rect.height*ROWS);
+  return [r,c];
+}
+map.addEventListener('pointerdown',e=>{e.preventDefault();painting=true;const[r,c]=cellFromEvent(e);paintCell(r,c);});
+map.addEventListener('pointermove',e=>{if(!painting)return;e.preventDefault();const[r,c]=cellFromEvent(e);paintCell(r,c);});
+window.addEventListener('pointerup',()=>painting=false);
+
+/* —— 动作 —— */
+document.getElementById('clearBtn').addEventListener('click',()=>{blank();render();});
+document.getElementById('seamBtn').addEventListener('click',function(){showGrid=!showGrid;this.classList.toggle('on',showGrid);render();});
+document.getElementById('exampleBtn').addEventListener('click',loadExample);
+function loadExample(){
+  blank();
+  // 一条横向小路
+  for(let c=0;c<COLS;c++) terrain[8][c]='path';
+  // 一个池塘
+  for(let r=2;r<=5;r++)for(let c=5;c<=10;c++){
+    if((r===2||r===5)&&(c===5||c===10))continue; // 抹角更圆润
+    terrain[r][c]='water';
+  }
+  // 几棵树
+  [[1,2],[1,13],[6,3],[6,12],[10,7]].forEach(([r,c])=>obj[r][c]='tree');
+  // 英雄
+  obj[9][2]='hero';
+  render();
+}
+
+/* ============ 无缝拼接演示 ============ */
+function tileGood(c){ // 边缘连续的草瓦片
+  c.fillStyle=C.grassA;c.fillRect(0,0,T,T);
+  c.fillStyle=C.grassB;c.fillRect(2,3,1,1);c.fillRect(5,6,1,1);c.fillRect(6,1,1,1);
+  c.fillStyle=C.grassC;c.fillRect(1,5,1,1);c.fillRect(4,2,1,1);
+}
+function tileBad(c){ // 自带亮边，平铺会露网格
+  c.fillStyle=C.grassA;c.fillRect(0,0,T,T);
+  c.fillStyle='#86c45a';c.fillRect(0,0,T,1);c.fillRect(0,0,1,T); // 顶/左亮边
+  c.fillStyle=C.grassB;c.fillRect(3,4,1,1);
+}
+function tileFill(id,fn){
+  const cv=document.getElementById(id),ctx=cv.getContext('2d');
+  const tile=document.createElement('canvas');tile.width=T;tile.height=T;
+  fn(tile.getContext('2d'));
+  const grid=6, s=cv.width/grid/T;
+  ctx.imageSmoothingEnabled=false;
+  for(let r=0;r<grid;r++)for(let c=0;c<grid;c++)
+    ctx.drawImage(tile,0,0,T,T,c*T*s,r*T*s,T*s,T*s);
+}
+tileFill('seamGood',tileGood);
+tileFill('seamBad',tileBad);
+
+/* ============ 自动连接形态演示 ============ */
+function autoSample(id,neighbors){ // neighbors: {up,dn,lf,rt} = 是否陆地
+  const cv=document.getElementById(id),ctx=cv.getContext('2d');
+  const tile=document.createElement('canvas');tile.width=T;tile.height=T;
+  const tc=tile.getContext('2d');
+  tc.fillStyle=C.waterA;tc.fillRect(0,0,T,T);
+  tc.fillStyle=C.sand;
+  if(neighbors.up)tc.fillRect(0,0,T,2);
+  if(neighbors.dn)tc.fillRect(0,T-2,T,2);
+  if(neighbors.lf)tc.fillRect(0,0,2,T);
+  if(neighbors.rt)tc.fillRect(T-2,0,2,T);
+  ctx.imageSmoothingEnabled=false;
+  ctx.drawImage(tile,0,0,T,T,0,0,cv.width,cv.height);
+}
+const SAMPLES=[
+  ['全是水',{}],
+  ['上岸',{up:1}],
+  ['左上角',{up:1,lf:1}],
+  ['三面岸',{up:1,lf:1,rt:1}],
+  ['一条水道',{lf:1,rt:1}]
+];
+const adWrap=document.getElementById('autoDemo');
+SAMPLES.forEach(([label,nb],i)=>{
+  const box=document.createElement('div');box.className='box';
+  const cv=document.createElement('canvas');cv.width=56;cv.height=56;cv.id='auto'+i;
+  const sp=document.createElement('span');sp.className='stage-label';sp.textContent=label;
+  box.appendChild(cv);box.appendChild(sp);adWrap.appendChild(box);
+  autoSample('auto'+i,nb);
+});
+
+/* init */
+loadExample();
+</script>
+</body>
+</html>

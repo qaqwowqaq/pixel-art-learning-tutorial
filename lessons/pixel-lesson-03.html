@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>像素游戏基础 · 第三课</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0e1018; --bg2:#161a28; --ink:#e7e3d8; --dim:#8a8fa3; --line:#2a2f44;
+    --red:#ff3b6b; --orange:#ff9d3c; --amber:#ffb02e; --green:#3ee07a; --blue:#3fb6ff;
+    --purple:#c177f2; --shadow:#05060b;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"VT323","PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;
+    line-height:1.85;font-size:21px;-webkit-font-smoothing:antialiased;position:relative;
+    background-image:
+      radial-gradient(circle at 18% -10%, rgba(255,157,60,.10), transparent 45%),
+      radial-gradient(circle at 90% 8%, rgba(255,59,107,.08), transparent 40%);}
+  body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:9999;
+    background:repeating-linear-gradient(0deg, rgba(0,0,0,.10) 0 1px, transparent 1px 3px);
+    mix-blend-mode:multiply;opacity:.5;}
+  .pix{font-family:"Press Start 2P",monospace;}
+  .wrap{max-width:780px;margin:0 auto;padding:0 22px 90px;}
+  header{padding:64px 22px 40px;max-width:780px;margin:0 auto;border-bottom:3px solid var(--line);}
+  .badge{display:inline-block;font-family:"Press Start 2P",monospace;font-size:10px;
+    color:var(--bg);background:var(--orange);padding:8px 12px;letter-spacing:1px;
+    box-shadow:4px 4px 0 var(--shadow);margin-bottom:26px;}
+  h1.title{font-family:"Press Start 2P",monospace;font-size:24px;line-height:1.6;
+    margin:0 0 18px;color:var(--ink);text-shadow:3px 3px 0 var(--shadow);}
+  h1.title .cn{display:block;font-size:30px;line-height:1.5;margin-top:14px;
+    font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;font-weight:800;
+    letter-spacing:2px;color:var(--amber);text-shadow:2px 2px 0 var(--shadow);}
+  .lede{color:var(--dim);font-size:22px;margin-top:6px;}
+  section{padding:44px 0 6px;border-bottom:2px dashed var(--line);}
+  .kicker{font-family:"Press Start 2P",monospace;font-size:11px;letter-spacing:1px;
+    color:var(--orange);display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+  .kicker::before{content:"";width:26px;height:11px;background:var(--orange);display:inline-block;}
+  h2{font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;
+    font-weight:800;font-size:30px;margin:0 0 8px;letter-spacing:1px;}
+  p{margin:14px 0;} .dim{color:var(--dim);} b,strong{color:var(--amber);font-weight:700;}
+  .tag{background:var(--bg2);border:2px solid var(--line);padding:1px 9px;
+    font-family:"Press Start 2P",monospace;font-size:11px;color:var(--orange);white-space:nowrap;}
+  .callout{background:var(--bg2);border-left:5px solid var(--green);padding:14px 18px;margin:20px 0;
+    box-shadow:4px 4px 0 var(--shadow);font-size:20px;}
+
+  .lab{background:var(--bg2);border:3px solid var(--line);box-shadow:8px 8px 0 var(--shadow);
+    margin:30px 0;overflow:hidden;}
+  .lab-top{background:linear-gradient(90deg,var(--line),transparent);padding:12px 16px;
+    display:flex;align-items:center;gap:10px;font-family:"Press Start 2P",monospace;
+    font-size:11px;color:var(--ink);border-bottom:3px solid var(--line);}
+  .dot{width:11px;height:11px;background:var(--red);box-shadow:16px 0 0 var(--amber),32px 0 0 var(--green);}
+  .lab-body{padding:22px 18px 26px;display:flex;flex-wrap:wrap;gap:26px;align-items:flex-start;}
+  .stage{flex:1 1 240px;min-width:230px;display:flex;flex-direction:column;align-items:center;gap:12px;}
+  .canvas-frame{background:
+      conic-gradient(#1b2030 90deg,#11141f 90deg 180deg,#1b2030 180deg 270deg,#11141f 270deg) 0 0/24px 24px;
+    border:3px solid var(--line);box-shadow:inset 0 0 0 2px var(--shadow);line-height:0;}
+  canvas{display:block;image-rendering:pixelated;}
+  .stage-label{font-family:"Press Start 2P",monospace;font-size:10px;color:var(--dim);text-align:center;}
+  .controls{flex:1 1 240px;min-width:230px;display:flex;flex-direction:column;gap:18px;}
+  .ctrl-label{font-family:"Press Start 2P",monospace;font-size:10px;color:var(--blue);
+    margin-bottom:9px;display:block;letter-spacing:.5px;}
+  input[type=range]{-webkit-appearance:none;width:100%;height:10px;background:var(--bg);
+    border:2px solid var(--line);outline:none;cursor:pointer;}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;
+    background:var(--orange);border:2px solid var(--shadow);cursor:pointer;}
+  input[type=range]::-moz-range-thumb{width:18px;height:18px;background:var(--orange);
+    border:2px solid var(--shadow);cursor:pointer;border-radius:0;}
+  .val{font-family:"Press Start 2P",monospace;font-size:11px;color:var(--orange);}
+  .btn-row{display:flex;flex-wrap:wrap;gap:8px;}
+  button{font-family:"VT323",sans-serif;font-size:19px;cursor:pointer;background:var(--bg);
+    color:var(--ink);border:2px solid var(--line);padding:6px 12px;
+    box-shadow:3px 3px 0 var(--shadow);transition:all .05s;}
+  button:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--shadow);}
+  button:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--shadow);}
+  button.on{background:var(--orange);color:var(--bg);border-color:var(--orange);font-weight:bold;}
+  button.danger.on{background:var(--red);border-color:var(--red);color:#fff;}
+  .hint{font-size:18px;color:var(--dim);margin-top:4px;min-height:2.6em;}
+
+  /* sprite sheet strip */
+  .sheet{display:flex;gap:6px;flex-wrap:wrap;margin:18px 0;padding:14px;background:var(--bg2);
+    border:3px solid var(--line);box-shadow:6px 6px 0 var(--shadow);}
+  .cell{display:flex;flex-direction:column;align-items:center;gap:5px;}
+  .cell canvas{border:2px solid var(--line);background:#11141f;}
+  .cell.cur canvas{border-color:var(--orange);box-shadow:0 0 0 2px var(--orange);}
+  .cell span{font-family:"Press Start 2P",monospace;font-size:8px;color:var(--dim);}
+  .cell.cur span{color:var(--orange);}
+
+  .next{background:linear-gradient(135deg,var(--bg2),#2a1810);border:3px solid var(--amber);
+    box-shadow:8px 8px 0 var(--shadow);padding:26px 22px;margin-top:34px;}
+  .next h3{font-family:"Press Start 2P",monospace;font-size:14px;color:var(--amber);margin:0 0 16px;}
+  .next ul{margin:0;padding-left:4px;list-style:none;}
+  .next li{padding:7px 0;border-bottom:1px dashed var(--line);}
+  .next li::before{content:"▸ ";color:var(--amber);}
+  footer{max-width:780px;margin:0 auto;padding:34px 22px;color:var(--dim);font-size:16px;text-align:center;}
+  .pjump{font-family:"Press Start 2P",monospace;font-size:9px;color:var(--orange);}
+</style>
+</head>
+<body>
+
+<header>
+  <span class="badge">LESSON 03 / 4</span>
+  <h1 class="title">MOTION<span class="cn">像素游戏 · 第三课</span></h1>
+  <p class="lede">让上一课的球弹起来：帧 → 帧率 → 洋葱皮 → 防止「像素沸腾」。先按播放。</p>
+</header>
+
+<div class="wrap">
+
+  <!-- 01 -->
+  <section>
+    <div class="kicker">CONCEPT 01 — FRAMES &amp; SHEET</div>
+    <h2>帧与精灵表</h2>
+    <p>动画的本质就是<b>翻页书</b>：一连串静止的<b>帧（frame）</b>快速播放，眼睛就以为它在动。游戏里这些帧通常排在一张图上一起存，叫<b>精灵表（sprite sheet）</b>。</p>
+    <p class="dim">下面这个弹跳球只有 <span class="tag">8 帧</span>。按 <span class="tag">▶ 播放</span> 看它动，再用 <span class="tag">◀ ▶ 单帧</span> 一帧帧看它是怎么拼出来的。</p>
+
+    <!-- ===== PLAYER LAB ===== -->
+    <div class="lab">
+      <div class="lab-top"><span class="dot"></span><span style="margin-left:38px">ANIM_LAB.exe</span></div>
+      <div class="lab-body">
+        <div class="stage">
+          <div class="canvas-frame"><canvas id="anim" width="336" height="336"></canvas></div>
+          <div class="stage-label" id="animLabel">FRAME 1 / 8</div>
+        </div>
+        <div class="controls">
+          <div>
+            <span class="ctrl-label">播放 / TRANSPORT</span>
+            <div class="btn-row">
+              <button id="playBtn" class="on">▶ 播放</button>
+              <button id="prevBtn">◀ 帧</button>
+              <button id="nextBtn">帧 ▶</button>
+            </div>
+          </div>
+          <div>
+            <span class="ctrl-label">帧率 / FPS <span class="val" id="fpsVal">8</span></span>
+            <input type="range" id="fps" min="2" max="24" value="8" step="1">
+            <div class="hint" id="fpsHint">12fps 左右就有流畅感；太低会卡，太高反而看不清每帧。</div>
+          </div>
+          <div>
+            <span class="ctrl-label">叠加 / OVERLAYS</span>
+            <div class="btn-row">
+              <button id="onionBtn">🧅 洋葱皮</button>
+              <button id="boilBtn" class="danger">✦ 模拟像素沸腾</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sheet" id="sheet"></div>
+    <p class="dim" style="margin-top:6px">↑ 这就是这个球的「精灵表」：8 帧并排，高亮的是当前正在播放的帧。</p>
+    <div class="callout"><b>挤压与拉伸（squash &amp; stretch）</b>：注意球落地瞬间被压扁、上升时被拉长。这是动画第一原则——物体形变会让运动瞬间「有生命」，僵硬的刚体反而最假。</div>
+  </section>
+
+  <!-- 02 -->
+  <section>
+    <div class="kicker">CONCEPT 02 — TIMING</div>
+    <h2>帧率与节奏</h2>
+    <p>动画好不好看，<b>节奏</b>比帧数更重要。拖上面的 <span class="tag">FPS</span> 滑块感受一下：同样 8 帧，慢放像在水里、快放像打了鸡血。</p>
+    <p class="dim">两个老手常识：复古动画常用 <b>12fps「踩两格」</b>（每张画面停两帧），省一半工作量还更有「手感」；而且<b>不是每帧时长都要一样</b>——比如让球在最高点多停一两帧（hold），落地却一闪而过，弹跳就更带劲。Aseprite 里每帧都能单独设时长就是为了这个。</p>
+  </section>
+
+  <!-- 03 -->
+  <section>
+    <div class="kicker">CONCEPT 03 — ONION SKIN</div>
+    <h2>洋葱皮</h2>
+    <p>画动画时，怎么保证这一帧和前后帧衔接顺？靠<b>洋葱皮（onion skinning）</b>——把前一帧和后一帧<b>半透明地叠</b>在当前帧上当参考，就能看清运动轨迹、避免画飘。</p>
+    <p class="dim">点上面的 <span class="tag">🧅 洋葱皮</span>（建议先暂停、再用单帧步进看最清楚）：<b style="color:var(--red)">红色</b>是上一帧的位置，<b style="color:var(--blue)">蓝色</b>是下一帧的位置。球的轨迹一下就显出来了——这正是像素师对齐每一帧的「眼睛」。</p>
+  </section>
+
+  <!-- 04 -->
+  <section>
+    <div class="kicker">CONCEPT 04 — NO BOILING</div>
+    <h2>只动该动的：防止「像素沸腾」</h2>
+    <p>这是把动画做干净的铁律：<b>不该动的像素，每一帧必须分毫不差地保持原样</b>。否则整个画面会持续闪烁、蠕动，像在锅里煮——这就是<b>像素沸腾（pixel boiling）</b>。</p>
+    <p class="dim">点上面那个红色的 <span class="tag">✦ 模拟像素沸腾</span> 按钮：球的形状没变，但每一帧的颜色和边缘都在随机抖动，整个球开始「沸腾」，看着就脏。这正是<b>直接用 AI 逐帧生成像素动画</b>会犯的毛病——每帧噪声不同，本该静止的地方全在抖。</p>
+    <div class="callout">所以真像素动画的工作流是：画好第一帧 → <b>复制</b>它 → 只<b>改动需要变化的那几个像素</b>。复制+微调，而不是每帧重画。这样静止区域天然零抖动。</div>
+  </section>
+
+  <!-- next -->
+  <div class="next">
+    <h3>▶ FINAL LESSON</h3>
+    <p style="margin-top:0" class="dim">单个角色你已经能画、能上色、能动了。<b>第四课（完结篇）</b>把视角拉远到「一个世界」：</p>
+    <ul>
+      <li>瓦片（Tile）与瓦片地图：用一小堆方块拼出整张地图</li>
+      <li>无缝拼接：为什么瓦片必须严格对齐、边缘要接得上</li>
+      <li>自动连接（auto-tiling）：墙角、水边怎么自动选对图块</li>
+      <li>把前三课的角色放进这个世界里</li>
+    </ul>
+    <p class="dim" style="margin-bottom:0">说"下一课"就上完结篇。</p>
+  </div>
+
+</div>
+
+<footer>
+  <span class="pjump">PIXEL BASICS · 03</span><br>
+  先正常播一遍，再开「像素沸腾」对比——脏与干净的差别一眼就懂 ✦
+</footer>
+
+<script>
+/* ====== 弹跳球：8 帧（含挤压拉伸）====== */
+const G = 24;              // 画布格子数
+const CX = 12;             // 水平中心
+const GROUND = 21;         // 地面行
+const RAMP = ['#5a1208','#a3290f','#e0561c','#ff9d3c','#ffe0a8']; // 暗→亮
+const OUTLINE = '#2a0a04';
+
+// 每帧: 球心 y, 横半径 rx, 纵半径 ry
+const FRAMES = [
+  {cy:7,  rx:5.0, ry:5.0},   // 顶点
+  {cy:10, rx:4.6, ry:5.6},   // 下落·拉长
+  {cy:14, rx:4.3, ry:6.0},   // 加速下落
+  {cy:18, rx:7.0, ry:3.0},   // 落地·压扁
+  {cy:14, rx:4.3, ry:6.0},   // 弹起·拉长
+  {cy:10, rx:4.6, ry:5.6},   // 上升
+  {cy:8,  rx:4.9, ry:5.2},   // 接近顶点
+  {cy:7,  rx:5.0, ry:5.0}    // 顶点(停留)
+];
+const N = FRAMES.length;
+const LX=-0.55, LY=-0.55, LZ=0.62;  // 光源(左上)
+
+function ellipseShade(x,y,f,boil){
+  const nx=(x-CX)/f.rx, ny=(y-f.cy)/f.ry;
+  const r2=nx*nx+ny*ny;
+  if(r2>1) return null;                 // 椭圆外
+  // 边缘 → 轮廓
+  const edge = (((x-1-CX)/f.rx)**2+((y-f.cy)/f.ry)**2>1)||
+               (((x+1-CX)/f.rx)**2+((y-f.cy)/f.ry)**2>1)||
+               (((x-CX)/f.rx)**2+((y-1-f.cy)/f.ry)**2>1)||
+               (((x-CX)/f.rx)**2+((y+1-f.cy)/f.ry)**2>1);
+  if(edge) return OUTLINE;
+  let nz=Math.sqrt(Math.max(0,1-r2));
+  let i=nx*LX+ny*LY+nz*LZ; if(i<0)i=0;
+  if(boil) i+=(Math.random()-0.5)*0.5;  // 沸腾：随机扰动明度
+  let idx; if(i<=0.16)idx=0;else if(i<=0.42)idx=1;else if(i<=0.66)idx=2;else if(i<=0.88)idx=3;else idx=4;
+  idx=Math.max(0,Math.min(4,idx));
+  return RAMP[idx];
+}
+
+// 把第 fi 帧画进一个 G×G 离屏（含地面与影子）
+function frameOffscreen(fi,boil){
+  const off=document.createElement('canvas'); off.width=G; off.height=G;
+  const c=off.getContext('2d');
+  const f=FRAMES[fi];
+  // 地面线
+  c.fillStyle='#20283c'; c.fillRect(0,GROUND+1,G,2);
+  // 地面影子：球越低影子越大
+  const low=(f.cy-7)/(18-7);            // 0顶 1底
+  const sw=2.5+low*4.5;
+  c.fillStyle='rgba(0,0,0,0.35)';
+  for(let x=0;x<G;x++){ const dx=(x-CX)/sw; if(dx*dx<=1){ c.fillRect(x,GROUND,1,1);} }
+  // 球
+  for(let y=0;y<G;y++) for(let x=0;x<G;x++){
+    const col=ellipseShade(x,y,f,boil);
+    if(col){ c.fillStyle=col; c.fillRect(x,y,1,1); }
+  }
+  return off;
+}
+// 洋葱皮：某帧的纯色剪影
+function ghost(c,fi,color,alpha,scale){
+  const f=FRAMES[fi];
+  c.save(); c.globalAlpha=alpha; c.fillStyle=color;
+  for(let y=0;y<G;y++) for(let x=0;x<G;x++){
+    const nx=(x-CX)/f.rx, ny=(y-f.cy)/f.ry;
+    if(nx*nx+ny*ny<=1) c.fillRect(x*scale,y*scale,scale,scale);
+  }
+  c.restore();
+}
+
+const anim=document.getElementById('anim');
+const actx=anim.getContext('2d');
+const scale=14, DIM=G*scale;
+anim.width=DIM; anim.height=DIM;
+
+let state={frame:0, playing:true, fps:8, onion:false, boil:false};
+
+function draw(){
+  actx.imageSmoothingEnabled=false;
+  actx.clearRect(0,0,DIM,DIM);
+  if(state.onion){
+    ghost(actx,(state.frame+N-1)%N,'#ff3b6b',0.30,scale); // 上一帧 红
+    ghost(actx,(state.frame+1)%N,'#3fb6ff',0.30,scale);   // 下一帧 蓝
+  }
+  const off=frameOffscreen(state.frame,state.boil);
+  actx.drawImage(off,0,0,G,G,0,0,DIM,DIM);
+  document.getElementById('animLabel').textContent=`FRAME ${state.frame+1} / ${N}`;
+  document.querySelectorAll('.cell').forEach((el,i)=>el.classList.toggle('cur',i===state.frame));
+}
+
+/* 播放循环 */
+let last=0, acc=0;
+function loop(t){
+  if(state.playing){
+    if(!last) last=t;
+    acc+=t-last; last=t;
+    const step=1000/state.fps;
+    while(acc>=step){ state.frame=(state.frame+1)%N; acc-=step; }
+    if(state.boil) draw();              // 沸腾时即使没换帧也要重绘
+    else if(acc<step) draw();
+  } else { last=0; }
+  requestAnimationFrame(loop);
+}
+
+/* 精灵表缩略 */
+const sheet=document.getElementById('sheet');
+for(let i=0;i<N;i++){
+  const cell=document.createElement('div'); cell.className='cell';
+  const cv=document.createElement('canvas'); cv.width=48; cv.height=48;
+  const cc=cv.getContext('2d'); cc.imageSmoothingEnabled=false;
+  cc.drawImage(frameOffscreen(i,false),0,0,G,G,0,0,48,48);
+  const sp=document.createElement('span'); sp.textContent=i+1;
+  cell.appendChild(cv); cell.appendChild(sp);
+  cell.addEventListener('click',()=>{state.playing=false;playBtn.classList.remove('on');playBtn.textContent='▶ 播放';state.frame=i;draw();});
+  sheet.appendChild(cell);
+}
+
+/* 控件 */
+const playBtn=document.getElementById('playBtn');
+playBtn.addEventListener('click',()=>{
+  state.playing=!state.playing;
+  playBtn.classList.toggle('on',state.playing);
+  playBtn.textContent=state.playing?'⏸ 暂停':'▶ 播放';
+});
+document.getElementById('prevBtn').addEventListener('click',()=>{
+  state.playing=false;playBtn.classList.remove('on');playBtn.textContent='▶ 播放';
+  state.frame=(state.frame+N-1)%N;draw();
+});
+document.getElementById('nextBtn').addEventListener('click',()=>{
+  state.playing=false;playBtn.classList.remove('on');playBtn.textContent='▶ 播放';
+  state.frame=(state.frame+1)%N;draw();
+});
+const fps=document.getElementById('fps');
+fps.addEventListener('input',()=>{state.fps=+fps.value;document.getElementById('fpsVal').textContent=state.fps;});
+const onionBtn=document.getElementById('onionBtn');
+onionBtn.addEventListener('click',()=>{state.onion=!state.onion;onionBtn.classList.toggle('on',state.onion);draw();});
+const boilBtn=document.getElementById('boilBtn');
+boilBtn.addEventListener('click',()=>{state.boil=!state.boil;boilBtn.classList.toggle('on',state.boil);draw();});
+
+draw();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

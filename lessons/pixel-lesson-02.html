@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>像素游戏基础 · 第二课</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0e1018; --bg2:#161a28; --ink:#e7e3d8; --dim:#8a8fa3; --line:#2a2f44;
+    --red:#ff3b6b; --orange:#ffb02e; --green:#3ee07a; --blue:#3fb6ff; --teal:#4fd6e0;
+    --purple:#c177f2; --shadow:#05060b;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;background:var(--bg);color:var(--ink);
+    font-family:"VT323","PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;
+    line-height:1.85;font-size:21px;-webkit-font-smoothing:antialiased;position:relative;
+    background-image:
+      radial-gradient(circle at 18% -10%, rgba(79,214,224,.10), transparent 45%),
+      radial-gradient(circle at 90% 8%, rgba(255,176,46,.08), transparent 40%);
+  }
+  body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:9999;
+    background:repeating-linear-gradient(0deg, rgba(0,0,0,.10) 0 1px, transparent 1px 3px);
+    mix-blend-mode:multiply;opacity:.5;}
+  .pix{font-family:"Press Start 2P",monospace;}
+  .wrap{max-width:780px;margin:0 auto;padding:0 22px 90px;}
+  header{padding:64px 22px 40px;max-width:780px;margin:0 auto;border-bottom:3px solid var(--line);}
+  .badge{display:inline-block;font-family:"Press Start 2P",monospace;font-size:10px;
+    color:var(--bg);background:var(--teal);padding:8px 12px;letter-spacing:1px;
+    box-shadow:4px 4px 0 var(--shadow);margin-bottom:26px;}
+  h1.title{font-family:"Press Start 2P",monospace;font-size:24px;line-height:1.6;
+    margin:0 0 18px;color:var(--ink);text-shadow:3px 3px 0 var(--shadow);}
+  h1.title .cn{display:block;font-size:30px;line-height:1.5;margin-top:14px;
+    font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;font-weight:800;
+    letter-spacing:2px;color:var(--orange);text-shadow:2px 2px 0 var(--shadow);}
+  .lede{color:var(--dim);font-size:22px;margin-top:6px;}
+  section{padding:44px 0 6px;border-bottom:2px dashed var(--line);}
+  .kicker{font-family:"Press Start 2P",monospace;font-size:11px;letter-spacing:1px;
+    color:var(--teal);display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+  .kicker::before{content:"";width:26px;height:11px;background:var(--teal);display:inline-block;}
+  h2{font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;
+    font-weight:800;font-size:30px;margin:0 0 8px;letter-spacing:1px;}
+  p{margin:14px 0;} .dim{color:var(--dim);} b,strong{color:var(--orange);font-weight:700;}
+  .tag{background:var(--bg2);border:2px solid var(--line);padding:1px 9px;
+    font-family:"Press Start 2P",monospace;font-size:11px;color:var(--teal);white-space:nowrap;}
+  .callout{background:var(--bg2);border-left:5px solid var(--red);padding:14px 18px;margin:20px 0;
+    box-shadow:4px 4px 0 var(--shadow);font-size:20px;}
+
+  .lab{background:var(--bg2);border:3px solid var(--line);box-shadow:8px 8px 0 var(--shadow);
+    margin:30px 0;overflow:hidden;}
+  .lab-top{background:linear-gradient(90deg,var(--line),transparent);padding:12px 16px;
+    display:flex;align-items:center;gap:10px;font-family:"Press Start 2P",monospace;
+    font-size:11px;color:var(--ink);border-bottom:3px solid var(--line);}
+  .dot{width:11px;height:11px;background:var(--red);box-shadow:16px 0 0 var(--orange),32px 0 0 var(--green);}
+  .lab-body{padding:22px 18px 26px;display:flex;flex-wrap:wrap;gap:26px;align-items:flex-start;}
+  .stage{flex:1 1 260px;min-width:240px;display:flex;flex-direction:column;align-items:center;gap:12px;}
+  .canvas-frame{background:
+      conic-gradient(#1b2030 90deg,#11141f 90deg 180deg,#1b2030 180deg 270deg,#11141f 270deg) 0 0/24px 24px;
+    border:3px solid var(--line);box-shadow:inset 0 0 0 2px var(--shadow);line-height:0;}
+  canvas{display:block;image-rendering:pixelated;}
+  .stage-label{font-family:"Press Start 2P",monospace;font-size:10px;color:var(--dim);text-align:center;}
+  .controls{flex:1 1 230px;min-width:220px;display:flex;flex-direction:column;gap:20px;}
+  .ctrl-label{font-family:"Press Start 2P",monospace;font-size:10px;color:var(--blue);
+    margin-bottom:9px;display:block;letter-spacing:.5px;}
+  input[type=range]{-webkit-appearance:none;width:100%;height:10px;background:var(--bg);
+    border:2px solid var(--line);outline:none;cursor:pointer;}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;
+    background:var(--teal);border:2px solid var(--shadow);cursor:pointer;}
+  input[type=range]::-moz-range-thumb{width:18px;height:18px;background:var(--teal);
+    border:2px solid var(--shadow);cursor:pointer;border-radius:0;}
+  .val{font-family:"Press Start 2P",monospace;font-size:11px;color:var(--teal);}
+  .btn-row{display:flex;flex-wrap:wrap;gap:8px;}
+  button{font-family:"VT323",sans-serif;font-size:19px;cursor:pointer;background:var(--bg);
+    color:var(--ink);border:2px solid var(--line);padding:6px 12px;
+    box-shadow:3px 3px 0 var(--shadow);transition:all .05s;}
+  button:hover{transform:translate(-1px,-1px);box-shadow:4px 4px 0 var(--shadow);}
+  button:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--shadow);}
+  button.on{background:var(--teal);color:var(--bg);border-color:var(--teal);font-weight:bold;}
+  .hint{font-size:18px;color:var(--dim);margin-top:4px;min-height:2.6em;}
+  .stage-cap{font-size:19px;color:var(--ink);background:var(--bg);border:2px solid var(--line);
+    padding:8px 12px;min-height:3.4em;width:100%;}
+
+  /* jaggy line demo */
+  .twin{display:flex;gap:20px;flex-wrap:wrap;margin:20px 0;}
+  .twin .box{display:flex;flex-direction:column;align-items:center;gap:8px;}
+  .twin canvas{border:2px solid var(--line);background:#11141f;}
+  .bad{color:var(--red);} .good{color:var(--green);}
+
+  /* dithering demo */
+  .dith{background:var(--bg2);border:3px solid var(--line);box-shadow:6px 6px 0 var(--shadow);
+    padding:20px 18px;margin:24px 0;}
+  .dith .strip{display:flex;align-items:center;gap:14px;margin:12px 0;}
+  .dith canvas{border:2px solid var(--line);image-rendering:pixelated;}
+  .dith .name{font-family:"Press Start 2P",monospace;font-size:10px;width:108px;flex:none;}
+
+  .next{background:linear-gradient(135deg,var(--bg2),#10241f);border:3px solid var(--green);
+    box-shadow:8px 8px 0 var(--shadow);padding:26px 22px;margin-top:34px;}
+  .next h3{font-family:"Press Start 2P",monospace;font-size:14px;color:var(--green);margin:0 0 16px;}
+  .next ul{margin:0;padding-left:4px;list-style:none;}
+  .next li{padding:7px 0;border-bottom:1px dashed var(--line);}
+  .next li::before{content:"▸ ";color:var(--green);}
+  footer{max-width:780px;margin:0 auto;padding:34px 22px;color:var(--dim);font-size:16px;text-align:center;}
+  .pjump{font-family:"Press Start 2P",monospace;font-size:9px;color:var(--teal);}
+</style>
+</head>
+<body>
+
+<header>
+  <span class="badge">LESSON 02 / 4</span>
+  <h1 class="title">VOLUME &amp; LIGHT<span class="cn">像素游戏 · 第二课</span></h1>
+  <p class="lede">把一个平的形状画出立体感：剪影 → 轮廓 → 明暗 → 抖动。先动手把圆盘变成球。</p>
+</header>
+
+<div class="wrap">
+
+  <!-- 01 -->
+  <section>
+    <div class="kicker">CONCEPT 01 — SILHOUETTE</div>
+    <h2>剪影优先</h2>
+    <p>像素这么少，<b>第一关永远是"能不能认出来"</b>。专业像素师画任何东西，都先确认它的<b>剪影（纯黑影子）</b>就能让人一眼认出是什么——剪影立不住，加再多细节也白搭。</p>
+    <p class="dim">下面这个建模台，我们从一个圆开始。点 <span class="tag">① 剪影</span> 看纯影子，再一步步往上加。这一个实验室会贯穿本课的前三个概念。</p>
+
+    <!-- ===== LAB ===== -->
+    <div class="lab">
+      <div class="lab-top"><span class="dot"></span><span style="margin-left:38px">SHADING_LAB.exe</span></div>
+      <div class="lab-body">
+        <div class="stage">
+          <div class="canvas-frame"><canvas id="orb" width="360" height="360"></canvas></div>
+          <div class="stage-label" id="orbLabel">20 × 20 px</div>
+        </div>
+        <div class="controls">
+          <div>
+            <span class="ctrl-label">建模步骤 / STEP</span>
+            <div class="btn-row">
+              <button class="stp on" data-stp="1">① 剪影</button>
+              <button class="stp" data-stp="2">② 轮廓</button>
+              <button class="stp" data-stp="3">③ 明暗</button>
+            </div>
+            <div class="stage-cap" id="cap"></div>
+          </div>
+          <div>
+            <span class="ctrl-label">光源方向 / LIGHT <span class="val" id="lightVal">↖</span></span>
+            <input type="range" id="light" min="0" max="359" value="225" step="5">
+            <div class="hint" id="lightHint">仅在「③ 明暗」生效：拖动它，看高光和阴影怎么跟着光源跑。</div>
+          </div>
+          <div>
+            <span class="ctrl-label">显示 / VIEW</span>
+            <div class="btn-row"><button id="gridBtn">▦ 网格线</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 -->
+  <section>
+    <div class="kicker">CONCEPT 02 — OUTLINE &amp; JAGGIES</div>
+    <h2>轮廓线与锯齿</h2>
+    <p>第二步通常是给剪影<b>描一圈深色轮廓线</b>（粗细就 1 像素），它能把物体从背景里"抠"出来。但低分辨率下画曲线和斜线会出现<b>锯齿（jaggies）</b>——也就是台阶状的毛刺。</p>
+    <p class="dim">画干净线条的核心规矩：<b>台阶的长度要均匀、递进要规律</b>。下面左边是"坏"线（台阶忽长忽短，看着发抖），右边是"好"线（台阶等长，顺滑）。这就是像素师说的 <span class="tag">pixel-perfect</span>。</p>
+    <div class="twin">
+      <div class="box"><canvas id="lineBad" width="120" height="84"></canvas><span class="stage-label bad">✗ 锯齿混乱</span></div>
+      <div class="box"><canvas id="lineGood" width="120" height="84"></canvas><span class="stage-label good">✓ 台阶均匀</span></div>
+    </div>
+    <p class="dim">回到上面的建模台开 <span class="tag">▦ 网格线</span>，你能看到球的轮廓也是一节节台阶拼出来的圆——曲线在像素世界里本来就是阶梯，关键是让阶梯有规律。</p>
+  </section>
+
+  <!-- 03 -->
+  <section>
+    <div class="kicker">CONCEPT 03 — SHADING</div>
+    <h2>明暗与体积：定一个光源</h2>
+    <p>让平面"鼓起来"的秘诀，是<b>先定一个光源方向</b>，然后用几档明度铺色：<span class="tag">暗部 → 中间色 → 亮部 → 高光</span>。通常 3～4 档就够，颜色多了反而乱。</p>
+    <p class="dim">在建模台切到 <span class="tag">③ 明暗</span>，再拖<b>光源滑块</b>：高光始终朝着光、阴影落在背光那侧，圆盘立刻变成球。这就是体积的来源。</p>
+    <div class="callout">新手最常见的坑叫<b>「枕头阴影」(pillow shading)</b>：不管光源，沿着轮廓一圈均匀加深，结果东西看着像个软趴趴的枕头、没有方向感。记住——<b>光只从一个方向来</b>，阴影就该偏向一侧，而不是四周对称。</div>
+    <p class="dim">注意：真正的像素师是<b>一格格手工摆</b>这些明暗的，这里用程序演示只是为了让你直观看到"光源 → 明度分档"的关系，原理完全一样。</p>
+  </section>
+
+  <!-- 04 -->
+  <section>
+    <div class="kicker">CONCEPT 04 — DITHERING</div>
+    <h2>抖动：用两种颜色骗出渐变</h2>
+    <p>调色板就那么几种颜色，想表现平滑的过渡怎么办？直接分档会出现难看的<b>色阶断层（banding）</b>。<b>抖动（dithering）</b>就是用棋盘状交错的点，让两种颜色在视觉上"混"成中间色——这是 8/16 位时代的经典手艺。</p>
+    <div class="dith">
+      <div class="strip"><span class="name" style="color:var(--blue)">平滑·多色</span><canvas id="dSmooth" width="384" height="48"></canvas></div>
+      <div class="strip"><span class="name bad">硬分档·断层</span><canvas id="dBand" width="384" height="48"></canvas></div>
+      <div class="strip"><span class="name good">抖动·同色数</span><canvas id="dDith" width="384" height="48"></canvas></div>
+      <div style="margin-top:16px">
+        <span class="ctrl-label">可用颜色数 / COLORS <span class="val" id="cVal">2</span></span>
+        <input type="range" id="colors" min="2" max="6" value="2" step="1">
+        <div class="hint">拉到 2：抖动用<b>仅仅两种颜色</b>就骗出了一条渐变，而硬分档只剩刺眼的两块。这就是抖动的魔法。</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- next -->
+  <div class="next">
+    <h3>▶ NEXT LESSON</h3>
+    <p style="margin-top:0" class="dim">现在你会把单个物体画立体了。第三课开始让它们"动"和"拼"起来：</p>
+    <ul>
+      <li>精灵表（Sprite Sheet）：一个角色的多个状态怎么排版</li>
+      <li>逐帧动画：洋葱皮、关键帧，怎么让走路不"飘"</li>
+      <li>避免「像素沸腾」：只动该动的像素</li>
+      <li>瓦片地图入门：用一小堆方块拼出整个世界</li>
+    </ul>
+    <p class="dim" style="margin-bottom:0">说"下一课"就继续。</p>
+  </div>
+
+</div>
+
+<footer>
+  <span class="pjump">PIXEL BASICS · 02</span><br>
+  把建模台的光源滑块拖一圈，体积感就刻进脑子里了 ✦
+</footer>
+
+<script>
+/* ============ 建模台：球体 ============ */
+const SIZE = 20;
+const CX = (SIZE-1)/2, CY = (SIZE-1)/2, R = (SIZE/2) - 1.2;
+
+// 明暗色阶（青色调）：暗→亮
+const RAMP = ['#0a3d44','#11626e','#1aa0b0','#4fd6e0','#bff6fb'];
+const OUTLINE = '#06262b';
+const SIL     = '#0c1418';   // 剪影色
+const FLAT    = '#1aa0b0';   // 平涂底色
+
+let state = { step:1, lightDeg:225, grid:false };
+
+function isInside(x,y){
+  const dx=x-CX, dy=y-CY;
+  return dx*dx+dy*dy <= R*R;
+}
+function isOutline(x,y){
+  if(!isInside(x,y)) return false;
+  // 任一四邻在外 → 边缘
+  return !isInside(x-1,y)||!isInside(x+1,y)||!isInside(x,y-1)||!isInside(x,y+1);
+}
+function shadeColor(x,y){
+  // 球面法线
+  const nx=(x-CX)/R, ny=(y-CY)/R;
+  let nz2 = 1-nx*nx-ny*ny; if(nz2<0) nz2=0;
+  const nz=Math.sqrt(nz2);
+  // 光向量（屏幕 y 向下）
+  const a = state.lightDeg*Math.PI/180;
+  const lx=Math.cos(a)*0.78, ly=Math.sin(a)*0.78, lz=0.62;
+  let i = nx*lx + ny*ly + nz*lz;        // 明度
+  if(i<0) i=0;
+  let idx;
+  if(i<=0.14) idx=0; else if(i<=0.40) idx=1;
+  else if(i<=0.66) idx=2; else if(i<=0.88) idx=3; else idx=4;
+  return RAMP[idx];
+}
+
+const orb = document.getElementById('orb');
+const octx = orb.getContext('2d');
+function renderOrb(){
+  const off=document.createElement('canvas'); off.width=SIZE; off.height=SIZE;
+  const c=off.getContext('2d');
+  for(let y=0;y<SIZE;y++) for(let x=0;x<SIZE;x++){
+    if(!isInside(x,y)) continue;
+    let col;
+    if(state.step===1){ col=SIL; }
+    else if(state.step===2){ col = isOutline(x,y)?OUTLINE:FLAT; }
+    else { col = isOutline(x,y)?OUTLINE:shadeColor(x,y); }
+    c.fillStyle=col; c.fillRect(x,y,1,1);
+  }
+  const scale=18, dim=SIZE*scale;
+  orb.width=dim; orb.height=dim;
+  octx.imageSmoothingEnabled=false;
+  octx.clearRect(0,0,dim,dim);
+  octx.drawImage(off,0,0,SIZE,SIZE,0,0,dim,dim);
+  if(state.grid){
+    octx.strokeStyle='rgba(255,255,255,.10)'; octx.lineWidth=1;
+    for(let i=0;i<=SIZE;i++){
+      octx.beginPath();octx.moveTo(i*scale+.5,0);octx.lineTo(i*scale+.5,dim);octx.stroke();
+      octx.beginPath();octx.moveTo(0,i*scale+.5);octx.lineTo(dim,i*scale+.5);octx.stroke();
+    }
+  }
+}
+const CAPS={
+  1:'纯剪影。能认出是个圆球吗？认得出，剪影就合格了。',
+  2:'描了 1px 深色轮廓 + 填了底色。能认出，但还是「平」的——像个圆盘。',
+  3:'按光源铺上 暗/中/亮/高光 四档，圆盘鼓成了球。拖右边光源滑块看变化。'
+};
+function setStep(s){
+  state.step=s;
+  document.querySelectorAll('.stp').forEach(b=>b.classList.toggle('on',+b.dataset.stp===s));
+  document.getElementById('cap').textContent=CAPS[s];
+  renderOrb();
+}
+document.querySelectorAll('.stp').forEach(b=>b.addEventListener('click',()=>setStep(+b.dataset.stp)));
+
+const light=document.getElementById('light');
+const arrows=['→','↘','↓','↙','←','↖','↑','↗'];
+light.addEventListener('input',()=>{
+  state.lightDeg=+light.value;
+  const ai=Math.round(state.lightDeg/45)%8;
+  document.getElementById('lightVal').textContent=arrows[ai];
+  if(state.step!==3) setStep(3);   // 拖光源自动跳到明暗步骤
+  else renderOrb();
+});
+const gridBtn=document.getElementById('gridBtn');
+gridBtn.addEventListener('click',()=>{state.grid=!state.grid;gridBtn.classList.toggle('on',state.grid);renderOrb();});
+
+/* ============ 锯齿线条演示 ============ */
+function drawLine(id, steps){
+  const cv=document.getElementById(id), c=cv.getContext('2d');
+  const s=6; c.imageSmoothingEnabled=false;
+  c.fillStyle='#4fd6e0';
+  let x=1,y=12;
+  for(const run of steps){
+    for(let k=0;k<run;k++){ c.fillRect(x*s,y*s,s,s); x++; }
+    y++;
+  }
+}
+// 坏：台阶忽长忽短  好：每节等长(2)
+drawLine('lineBad', [1,3,1,2,4,1,3]);
+drawLine('lineGood',[2,2,2,2,2,2,2]);
+
+/* ============ 抖动演示 ============ */
+const C0=[16,42,67], C1=[159,211,255];           // 暗→亮 两端
+function lerp(a,b,t){return Math.round(a+(b-a)*t);}
+function rampColor(u){ return `rgb(${lerp(C0[0],C1[0],u)},${lerp(C0[1],C1[1],u)},${lerp(C0[2],C1[2],u)})`; }
+const BAYER=[[0,8,2,10],[12,4,14,6],[3,11,1,9],[15,7,13,5]];
+const DW=64, DH=8;
+function renderDith(){
+  const n=+document.getElementById('colors').value;
+  document.getElementById('cVal').textContent=n;
+  // 平滑
+  paint('dSmooth',(x,y)=>rampColor(x/(DW-1)));
+  // 硬分档
+  paint('dBand',(x,y)=>{ const lvl=Math.round(x/(DW-1)*(n-1)); return rampColor(lvl/(n-1)); });
+  // 抖动
+  paint('dDith',(x,y)=>{
+    const v=x/(DW-1)*(n-1); const base=Math.floor(v); const frac=v-base;
+    const th=(BAYER[y%4][x%4]+0.5)/16;
+    const pick=Math.min(n-1, base+(frac>th?1:0));
+    return rampColor(pick/(n-1));
+  });
+}
+function paint(id,fn){
+  const cv=document.getElementById(id), c=cv.getContext('2d');
+  const off=document.createElement('canvas'); off.width=DW; off.height=DH;
+  const oc=off.getContext('2d');
+  for(let y=0;y<DH;y++) for(let x=0;x<DW;x++){ oc.fillStyle=fn(x,y); oc.fillRect(x,y,1,1); }
+  c.imageSmoothingEnabled=false;
+  c.drawImage(off,0,0,DW,DH,0,0,cv.width,cv.height);
+}
+document.getElementById('colors').addEventListener('input',renderDith);
+
+/* init */
+setStep(1);
+renderDith();
+</script>
+</body>
+</html>

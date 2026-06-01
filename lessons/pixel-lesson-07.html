@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>像素游戏进阶 · 第七课</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0e1018; --bg2:#161a28; --ink:#e7e3d8; --dim:#8a8fa3; --line:#2a2f44;
+    --red:#ff3b6b; --orange:#ff9d3c; --green:#3ee07a; --blue:#3fb6ff; --teal:#4fd6e0;
+    --purple:#c177f2; --sky:#4aa3ff; --shadow:#05060b;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"VT323","PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;
+    line-height:1.85;font-size:21px;-webkit-font-smoothing:antialiased;position:relative;
+    background-image:
+      radial-gradient(circle at 18% -10%, rgba(74,163,255,.12), transparent 45%),
+      radial-gradient(circle at 90% 8%, rgba(255,157,60,.07), transparent 40%);}
+  body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:9999;
+    background:repeating-linear-gradient(0deg, rgba(0,0,0,.10) 0 1px, transparent 1px 3px);
+    mix-blend-mode:multiply;opacity:.5;}
+  .pix{font-family:"Press Start 2P",monospace;}
+  .wrap{max-width:780px;margin:0 auto;padding:0 22px 90px;}
+  header{padding:64px 22px 40px;max-width:780px;margin:0 auto;border-bottom:3px solid var(--line);}
+  .badge{display:inline-block;font-family:"Press Start 2P",monospace;font-size:10px;
+    color:var(--bg);background:var(--sky);padding:8px 12px;letter-spacing:1px;
+    box-shadow:4px 4px 0 var(--shadow);margin-bottom:26px;}
+  h1.title{font-family:"Press Start 2P",monospace;font-size:24px;line-height:1.6;
+    margin:0 0 18px;color:var(--ink);text-shadow:3px 3px 0 var(--shadow);}
+  h1.title .cn{display:block;font-size:30px;line-height:1.5;margin-top:14px;
+    font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;font-weight:800;
+    letter-spacing:2px;color:var(--orange);text-shadow:2px 2px 0 var(--shadow);}
+  .lede{color:var(--dim);font-size:22px;margin-top:6px;}
+  section{padding:44px 0 6px;border-bottom:2px dashed var(--line);}
+  .kicker{font-family:"Press Start 2P",monospace;font-size:11px;letter-spacing:1px;
+    color:var(--sky);display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+  .kicker::before{content:"";width:26px;height:11px;background:var(--sky);display:inline-block;}
+  h2{font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;
+    font-weight:800;font-size:30px;margin:0 0 8px;letter-spacing:1px;}
+  p{margin:14px 0;} .dim{color:var(--dim);} b,strong{color:var(--orange);font-weight:700;}
+  .tag{background:var(--bg2);border:2px solid var(--line);padding:1px 9px;
+    font-family:"Press Start 2P",monospace;font-size:11px;color:var(--sky);white-space:nowrap;}
+  .callout{background:var(--bg2);border-left:5px solid var(--green);padding:14px 18px;margin:20px 0;
+    box-shadow:4px 4px 0 var(--shadow);font-size:20px;}
+
+  .lab{background:var(--bg2);border:3px solid var(--line);box-shadow:8px 8px 0 var(--shadow);
+    margin:30px 0;overflow:hidden;}
+  .lab-top{background:linear-gradient(90deg,var(--line),transparent);padding:12px 16px;
+    display:flex;align-items:center;gap:10px;font-family:"Press Start 2P",monospace;
+    font-size:11px;color:var(--ink);border-bottom:3px solid var(--line);}
+  .dot{width:11px;height:11px;background:var(--red);box-shadow:16px 0 0 var(--orange),32px 0 0 var(--green);}
+  .lab-body{padding:22px 18px 26px;display:flex;flex-wrap:wrap;gap:26px;align-items:flex-start;}
+  .stage{flex:1 1 230px;min-width:220px;display:flex;flex-direction:column;align-items:center;gap:12px;}
+  .canvas-frame{background:
+      conic-gradient(#1b2030 90deg,#11141f 90deg 180deg,#1b2030 180deg 270deg,#11141f 270deg) 0 0/22px 22px;
+    border:3px solid var(--line);box-shadow:inset 0 0 0 2px var(--shadow);line-height:0;}
+  canvas{display:block;image-rendering:pixelated;}
+  .stage-label{font-family:"Press Start 2P",monospace;font-size:10px;color:var(--sky);text-align:center;}
+  .controls{flex:1 1 250px;min-width:240px;display:flex;flex-direction:column;gap:16px;}
+  .ctrl-label{font-family:"Press Start 2P",monospace;font-size:10px;color:var(--blue);
+    margin-bottom:8px;display:block;letter-spacing:.5px;}
+  input[type=range]{-webkit-appearance:none;width:100%;height:10px;background:var(--bg);
+    border:2px solid var(--line);outline:none;cursor:pointer;}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;
+    background:var(--sky);border:2px solid var(--shadow);cursor:pointer;}
+  input[type=range]::-moz-range-thumb{width:18px;height:18px;background:var(--sky);
+    border:2px solid var(--shadow);cursor:pointer;border-radius:0;}
+  .val{font-family:"Press Start 2P",monospace;font-size:11px;color:var(--sky);}
+  .btn-row{display:flex;flex-wrap:wrap;gap:8px;}
+  button{font-family:"VT323",sans-serif;font-size:18px;cursor:pointer;background:var(--bg);
+    color:var(--ink);border:2px solid var(--line);padding:6px 11px;
+    box-shadow:3px 3px 0 var(--shadow);transition:all .05s;}
+  button:hover{transform:translate(-1px,-1px);}
+  button:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--shadow);}
+  button.on{background:var(--sky);color:var(--bg);border-color:var(--sky);font-weight:bold;}
+  .hint{font-size:18px;color:var(--dim);margin-top:4px;min-height:2.6em;}
+
+  .next{background:linear-gradient(135deg,var(--bg2),#0f1e2e);border:3px solid var(--sky);
+    box-shadow:8px 8px 0 var(--shadow);padding:26px 22px;margin-top:34px;}
+  .next h3{font-family:"Press Start 2P",monospace;font-size:14px;color:var(--sky);margin:0 0 16px;}
+  .next ul{margin:0;padding-left:4px;list-style:none;}
+  .next li{padding:7px 0;border-bottom:1px dashed var(--line);}
+  .next li::before{content:"▸ ";color:var(--sky);}
+  footer{max-width:780px;margin:0 auto;padding:34px 22px;color:var(--dim);font-size:16px;text-align:center;}
+  .pjump{font-family:"Press Start 2P",monospace;font-size:9px;color:var(--sky);}
+</style>
+</head>
+<body>
+
+<header>
+  <span class="badge">LESSON 07 · ADVANCED</span>
+  <h1 class="title">WALK CYCLE<span class="cn">进阶 · 角色行走循环</span></h1>
+  <p class="lede">让小人走起来，还要"有重量"。先按播放，再试着关掉重心起伏看它怎么飘。</p>
+</header>
+
+<div class="wrap">
+
+  <!-- 01 -->
+  <section>
+    <div class="kicker">CONCEPT 01 — FOUR KEY POSES</div>
+    <h2>走路 = 四个关键姿势的循环</h2>
+    <p>一个完整的走路循环，骨架是<b>四个关键姿势</b>，每条腿各走一遍：</p>
+    <p class="dim"><b>① 接触（Contact）</b>：双脚着地、一前一后劈开，身体在中等高度。<br>
+       <b>② 下沉（Down）</b>：前脚承重、膝盖弯曲，身体<b>压到最低</b>。<br>
+       <b>③ 经过（Passing）</b>：摆动腿从身下穿过、支撑腿伸直，身体<b>顶到最高</b>。<br>
+       <b>④ 抬升（Up）</b>：脚蹬地把身体往前上方送出。<br>
+       下面点这四个按钮逐个看姿势，再按播放看它们怎么连成走路。</p>
+
+    <!-- ===== LAB ===== -->
+    <div class="lab">
+      <div class="lab-top"><span class="dot"></span><span style="margin-left:38px">WALK_LAB.exe</span></div>
+      <div class="lab-body">
+        <div class="stage">
+          <div class="canvas-frame"><canvas id="walk" width="240" height="288"></canvas></div>
+          <div class="stage-label" id="poseLabel">接触 · FRAME 1/8</div>
+        </div>
+        <div class="controls">
+          <div>
+            <span class="ctrl-label">播放 / TRANSPORT</span>
+            <div class="btn-row">
+              <button id="playBtn" class="on">▶ 播放</button>
+              <button id="prevBtn">◀ 帧</button>
+              <button id="nextBtn">帧 ▶</button>
+            </div>
+          </div>
+          <div>
+            <span class="ctrl-label">关键姿势 / KEY POSES</span>
+            <div class="btn-row">
+              <button class="key" data-f="0">①接触</button>
+              <button class="key" data-f="1">②下沉</button>
+              <button class="key" data-f="2">③经过</button>
+              <button class="key" data-f="3">④抬升</button>
+            </div>
+          </div>
+          <div>
+            <span class="ctrl-label">帧率 / FPS <span class="val" id="fpsVal">9</span></span>
+            <input type="range" id="fps" min="2" max="20" value="9" step="1">
+          </div>
+          <div>
+            <span class="ctrl-label">开关 / TOGGLES</span>
+            <div class="btn-row">
+              <button id="bobBtn" class="on">⤴ 重心起伏</button>
+              <button id="armBtn" class="on">🙆 手臂摆动</button>
+              <button id="runBtn">🏃 切换跑步</button>
+            </div>
+          </div>
+          <div class="hint" id="hint">关掉「重心起伏」再看——小人立刻像在冰面上滑行，脚步没了分量。这是新手动画最常见的"飘"。</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 -->
+  <section>
+    <div class="kicker">CONCEPT 02 — WEIGHT</div>
+    <h2>重心起伏 = 重量感</h2>
+    <p>让走路"有分量"的头号秘密，是<b>身体在垂直方向的上下起伏</b>：经过时顶到最高，下沉/落地时压到最低。这一上一下，眼睛就读成了"重量被脚接住"。</p>
+    <p class="dim">在实验室里把 <span class="tag">重心起伏</span> 关掉：腿还在动，但身体高度纹丝不动——小人立刻变成<b>贴地滑行</b>，像没有体重。这就是为什么很多新手做的走路看着"飘"：他们只摆了腿，忘了让身体上下。<b>起伏幅度还能传达体型</b>：胖重的角色起伏大而慢，轻盈的小角色起伏小而快。</p>
+  </section>
+
+  <!-- 03 -->
+  <section>
+    <div class="kicker">CONCEPT 03 — CONTRALATERAL</div>
+    <h2>手脚对侧摆动</h2>
+    <p>人走路时<b>手脚是对角联动的</b>：左腿在前，右手就在前。这是身体为了平衡转体的自然结果，少了它走路会僵得像机器人。</p>
+    <p class="dim">点 <span class="tag">手臂摆动</span> 开关对比：关掉后手臂僵直下垂，整个人立刻"假"了；打开后手臂反向轻摆，平衡感就回来了。注意——<b>手臂的摆动相位和腿是反的</b>，这一点错了会非常别扭。</p>
+  </section>
+
+  <!-- 04 -->
+  <section>
+    <div class="kicker">CONCEPT 04 — FOLLOW-THROUGH &amp; RUN</div>
+    <h2>跟随动作，以及走 vs 跑</h2>
+    <p><b>跟随动作 / 重叠动作（follow-through）</b>：头发、披风、马尾、拿着的东西不会和身体同时停——它们<b>慢半拍</b>，身体停了它们还在晃。给角色加这一点"滞后的摆动"，生命感会暴涨。这也是为什么飘带、长发是像素角色的点睛之笔。</p>
+    <p class="dim">点 <span class="tag">切换跑步</span>：相比走路，跑步<b>步幅更大、抬腿更高、起伏更剧烈、身体前倾</b>，而且会出现<b>双脚同时离地</b>的腾空帧——这是走与跑最本质的区别（走路任何时刻至少一只脚着地，跑步不是）。</p>
+    <div class="callout">练习路线：先把这个 8 帧走路循环在 Aseprite 里临摹一遍（用洋葱皮对齐双脚轨迹），再加一条会滞后摆动的马尾或围巾。能做出"有重量 + 有跟随"的走路，你的角色动画就入门了。</div>
+  </section>
+
+  <!-- next -->
+  <div class="next">
+    <h3>▶ NEXT — LESSON 08</h3>
+    <p style="margin-top:0" class="dim">角色会动了，下一课做<b>特效动画（FX）</b>：</p>
+    <ul>
+      <li>火、烟、爆炸、受击火花的帧动画套路</li>
+      <li>发光（additive）与短促有力的节奏</li>
+      <li>一个可循环播放的爆炸 / 火焰</li>
+    </ul>
+    <p class="dim" style="margin-bottom:0">说"下一课"继续。</p>
+  </div>
+
+</div>
+
+<footer>
+  <span class="pjump">PIXEL ADVANCED · 07</span><br>
+  开关「重心起伏」来回切几次——"飘"与"实"的差别，一辈子都忘不了 ✦
+</footer>
+
+<script>
+/* ===== 网格与调色板 ===== */
+const W=30, H=36;
+const PAL={1:'#e8b894',2:'#e05a4a',3:'#a83f36',4:'#36507a',5:'#26395a',6:'#2a2a32',8:'#3a2a1a',9:'#14141c'};
+const SCALE=8;
+
+/* ===== 向量 / IK ===== */
+function seg(px,py,ax,ay,bx,by){const dx=bx-ax,dy=by-ay,l2=dx*dx+dy*dy;
+  let t=l2?((px-ax)*dx+(py-ay)*dy)/l2:0;t=t<0?0:t>1?1:t;
+  return Math.hypot(px-(ax+t*dx),py-(ay+t*dy));}
+function ik(hx,hy,fx,fy,l1,l2,perpSign){
+  let dx=fx-hx,dy=fy-hy,d=Math.hypot(dx,dy)||0.001;
+  const mx=l1+l2-0.02; if(d>mx)d=mx; const mn=Math.abs(l1-l2)+0.02; if(d<mn)d=mn;
+  const ux=dx/Math.hypot(dx,dy), uy=dy/Math.hypot(dx,dy);
+  const a=(l1*l1-l2*l2+d*d)/(2*d), h=Math.sqrt(Math.max(0,l1*l1-a*a));
+  const bx=hx+ux*a, by=hy+uy*a;
+  return {x:bx+perpSign*uy*h, y:by-perpSign*ux*h};
+}
+function lerp(a,b,t){return a+(b-a)*t;}
+function smooth(u){return u*u*(3-2*u);}
+
+/* ===== 一帧的骨架坐标 ===== */
+function pose(frame, opt){
+  const t=frame/8;
+  const run=opt.run;
+  const stride=run?5.0:3.4, lift=run?4.6:2.8, bobAmt=opt.bob?(run?3.0:1.9):0;
+  const lean=run?3.2:0.6;
+  const bob = bobAmt*Math.abs(Math.sin(Math.PI*2*t));
+  const HX=14, BASEHIP=21, TORSO=7, STAND=31;
+  const hip={x:HX, y:BASEHIP-bob};
+  const sh={x:hip.x+lean, y:hip.y-TORSO};
+  const head={x:sh.x+1.3, y:sh.y-4.2};
+  function foot(p){
+    let fx,fy;
+    if(p<0.5){const u=p/0.5; fx=lerp(stride/2,-stride/2,u); fy=STAND;}
+    else{const u=(p-0.5)/0.5; fx=lerp(-stride/2,stride/2,smooth(u)); fy=STAND-lift*Math.sin(Math.PI*u);}
+    return {x:hip.x+fx, y:fy};
+  }
+  const pNear=t, pFar=(t+0.5)%1;
+  const footN=foot(pNear), footF=foot(pFar);
+  const kneeN=ik(hip.x,hip.y,footN.x,footN.y,5,5,1);
+  const kneeF=ik(hip.x,hip.y,footF.x,footF.y,5,5,1);
+  // 手：相位与腿相反
+  function hand(p){
+    const sw=opt.arm?(run?4.0:2.6):0;
+    return {x:sh.x+sw*Math.cos(Math.PI*2*p), y:sh.y+6.5-Math.abs(Math.sin(Math.PI*2*p))*0.6};
+  }
+  const handN=hand((t+0.5)%1), handF=hand(t);
+  const elbN=ik(sh.x,sh.y,handN.x,handN.y,3.4,3.4,-1);
+  const elbF=ik(sh.x,sh.y,handF.x,handF.y,3.4,3.4,-1);
+  return {hip,sh,head,footN,footF,kneeN,kneeF,handN,handF,elbN,elbF};
+}
+
+/* ===== 光栅化 ===== */
+function blank(){return Array.from({length:H},()=>new Array(W).fill(0));}
+function limb(buf,a,b,c,rad,ci){for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(seg(x,y,a.x,a.y,b.x,b.y)<=rad||seg(x,y,b.x,b.y,c.x,c.y)<=rad)buf[y][x]=ci;}
+function disc(buf,cx,cy,r,ci){for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(Math.hypot(x-cx,y-cy)<=r)buf[y][x]=ci;}
+function bar(buf,a,b,rad,ci){for(let y=0;y<H;y++)for(let x=0;x<W;x++)if(seg(x,y,a.x,a.y,b.x,b.y)<=rad)buf[y][x]=ci;}
+
+function buildBuffer(P){
+  const buf=blank();
+  // 远侧腿/臂（深色，靠后）
+  limb(buf,P.hip,P.kneeF,P.footF,2.0,5);
+  disc(buf,P.footF.x+0.6,P.footF.y,2.0,5);
+  limb(buf,P.sh,P.elbF,P.handF,1.6,3);
+  // 躯干
+  bar(buf,P.hip,P.sh,3.0,2);
+  // 近侧腿/臂（亮色，靠前）
+  limb(buf,P.hip,P.kneeN,P.footN,2.1,4);
+  disc(buf,P.footN.x+0.6,P.footN.y,2.1,6);
+  limb(buf,P.sh,P.elbN,P.handN,1.7,2);
+  disc(buf,P.handN.x,P.handN.y,1.4,1);
+  // 头 + 头发
+  disc(buf,P.head.x,P.head.y,3.4,1);
+  disc(buf,P.head.x-0.3,P.head.y-1.4,3.2,8);
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){ // 头发只盖上半
+    if(buf[y][x]===8 && y>P.head.y) buf[y][x]=1;
+  }
+  // 描边：空像素若邻接实像素 → 轮廓
+  const out=buf.map(r=>r.slice());
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){
+    if(buf[y][x]!==0)continue;
+    if((y>0&&buf[y-1][x])||(y<H-1&&buf[y+1][x])||(x>0&&buf[y][x-1])||(x<W-1&&buf[y][x+1])) out[y][x]=9;
+  }
+  return out;
+}
+
+const walk=document.getElementById('walk');
+const wctx=walk.getContext('2d');
+walk.width=W*SCALE; walk.height=H*SCALE;
+
+let state={frame:0,playing:true,fps:9,bob:true,arm:true,run:false};
+const POSE=['接触','下沉','经过','抬升','接触','下沉','经过','抬升'];
+
+function draw(){
+  const P=pose(state.frame,{bob:state.bob,arm:state.arm,run:state.run});
+  const buf=buildBuffer(P);
+  const off=document.createElement('canvas');off.width=W;off.height=H;
+  const c=off.getContext('2d');
+  // 地面线
+  c.fillStyle='#20283c';c.fillRect(0,32,W,1);
+  for(let y=0;y<H;y++)for(let x=0;x<W;x++){const v=buf[y][x];if(v){c.fillStyle=PAL[v];c.fillRect(x,y,1,1);}}
+  wctx.imageSmoothingEnabled=false;wctx.clearRect(0,0,walk.width,walk.height);
+  wctx.drawImage(off,0,0,W,H,0,0,walk.width,walk.height);
+  document.getElementById('poseLabel').textContent=`${POSE[state.frame]} · FRAME ${state.frame+1}/8`;
+}
+
+let last=0,acc=0;
+function loop(ts){
+  if(state.playing){ if(!last)last=ts; acc+=ts-last; last=ts;
+    const step=1000/state.fps; let moved=false;
+    while(acc>=step){state.frame=(state.frame+1)%8;acc-=step;moved=true;}
+    if(moved)draw();
+  } else last=0;
+  requestAnimationFrame(loop);
+}
+
+function pause(){state.playing=false;playBtn.classList.remove('on');playBtn.textContent='▶ 播放';}
+const playBtn=document.getElementById('playBtn');
+playBtn.addEventListener('click',()=>{state.playing=!state.playing;
+  playBtn.classList.toggle('on',state.playing);
+  playBtn.textContent=state.playing?'⏸ 暂停':'▶ 播放';});
+document.getElementById('prevBtn').addEventListener('click',()=>{pause();state.frame=(state.frame+7)%8;draw();});
+document.getElementById('nextBtn').addEventListener('click',()=>{pause();state.frame=(state.frame+1)%8;draw();});
+document.querySelectorAll('.key').forEach(b=>b.addEventListener('click',()=>{pause();state.frame=+b.dataset.f;draw();}));
+const fps=document.getElementById('fps');
+fps.addEventListener('input',()=>{state.fps=+fps.value;document.getElementById('fpsVal').textContent=state.fps;});
+const bobBtn=document.getElementById('bobBtn');
+bobBtn.addEventListener('click',()=>{state.bob=!state.bob;bobBtn.classList.toggle('on',state.bob);
+  document.getElementById('hint').textContent=state.bob
+    ?'重心起伏开：身体随脚步上下，脚步有了分量。':'重心起伏关：身体高度不变，小人贴地滑行——这就是"飘"。';
+  draw();});
+const armBtn=document.getElementById('armBtn');
+armBtn.addEventListener('click',()=>{state.arm=!state.arm;armBtn.classList.toggle('on',state.arm);draw();});
+const runBtn=document.getElementById('runBtn');
+runBtn.addEventListener('click',()=>{state.run=!state.run;runBtn.classList.toggle('on',state.run);
+  runBtn.textContent=state.run?'🚶 切换走路':'🏃 切换跑步';draw();});
+
+draw();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

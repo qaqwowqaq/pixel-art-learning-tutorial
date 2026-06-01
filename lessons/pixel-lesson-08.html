@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>像素游戏进阶 · 第八课</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0e1018; --bg2:#161a28; --ink:#e7e3d8; --dim:#8a8fa3; --line:#2a2f44;
+    --red:#ff3b6b; --orange:#ff9d3c; --green:#3ee07a; --blue:#3fb6ff; --teal:#4fd6e0;
+    --purple:#c177f2; --fx:#ff5a2b; --shadow:#05060b;
+  }
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font-family:"VT323","PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;
+    line-height:1.85;font-size:21px;-webkit-font-smoothing:antialiased;position:relative;
+    background-image:
+      radial-gradient(circle at 18% -10%, rgba(255,90,43,.13), transparent 45%),
+      radial-gradient(circle at 90% 8%, rgba(255,210,63,.08), transparent 40%);}
+  body::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:9999;
+    background:repeating-linear-gradient(0deg, rgba(0,0,0,.10) 0 1px, transparent 1px 3px);
+    mix-blend-mode:multiply;opacity:.5;}
+  .pix{font-family:"Press Start 2P",monospace;}
+  .wrap{max-width:780px;margin:0 auto;padding:0 22px 90px;}
+  header{padding:64px 22px 40px;max-width:780px;margin:0 auto;border-bottom:3px solid var(--line);}
+  .badge{display:inline-block;font-family:"Press Start 2P",monospace;font-size:10px;
+    color:var(--bg);background:var(--fx);padding:8px 12px;letter-spacing:1px;
+    box-shadow:4px 4px 0 var(--shadow);margin-bottom:26px;}
+  h1.title{font-family:"Press Start 2P",monospace;font-size:24px;line-height:1.6;
+    margin:0 0 18px;color:var(--ink);text-shadow:3px 3px 0 var(--shadow);}
+  h1.title .cn{display:block;font-size:30px;line-height:1.5;margin-top:14px;
+    font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;font-weight:800;
+    letter-spacing:2px;color:var(--orange);text-shadow:2px 2px 0 var(--shadow);}
+  .lede{color:var(--dim);font-size:22px;margin-top:6px;}
+  section{padding:44px 0 6px;border-bottom:2px dashed var(--line);}
+  .kicker{font-family:"Press Start 2P",monospace;font-size:11px;letter-spacing:1px;
+    color:var(--fx);display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+  .kicker::before{content:"";width:26px;height:11px;background:var(--fx);display:inline-block;}
+  h2{font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;
+    font-weight:800;font-size:30px;margin:0 0 8px;letter-spacing:1px;}
+  p{margin:14px 0;} .dim{color:var(--dim);} b,strong{color:var(--orange);font-weight:700;}
+  .tag{background:var(--bg2);border:2px solid var(--line);padding:1px 9px;
+    font-family:"Press Start 2P",monospace;font-size:11px;color:var(--fx);white-space:nowrap;}
+  .callout{background:var(--bg2);border-left:5px solid var(--green);padding:14px 18px;margin:20px 0;
+    box-shadow:4px 4px 0 var(--shadow);font-size:20px;}
+
+  .lab{background:var(--bg2);border:3px solid var(--line);box-shadow:8px 8px 0 var(--shadow);
+    margin:30px 0;overflow:hidden;}
+  .lab-top{background:linear-gradient(90deg,var(--line),transparent);padding:12px 16px;
+    display:flex;align-items:center;gap:10px;font-family:"Press Start 2P",monospace;
+    font-size:11px;color:var(--ink);border-bottom:3px solid var(--line);}
+  .dot{width:11px;height:11px;background:var(--red);box-shadow:16px 0 0 var(--orange),32px 0 0 var(--green);}
+  .lab-body{padding:22px 18px 26px;display:flex;flex-wrap:wrap;gap:26px;align-items:flex-start;}
+  .stage{flex:1 1 230px;min-width:220px;display:flex;flex-direction:column;align-items:center;gap:12px;}
+  .canvas-frame{background:#0a0a10;border:3px solid var(--line);
+    box-shadow:inset 0 0 0 2px var(--shadow);line-height:0;}
+  canvas{display:block;image-rendering:pixelated;}
+  .stage-label{font-family:"Press Start 2P",monospace;font-size:10px;color:var(--fx);text-align:center;}
+  .controls{flex:1 1 250px;min-width:240px;display:flex;flex-direction:column;gap:16px;}
+  .ctrl-label{font-family:"Press Start 2P",monospace;font-size:10px;color:var(--blue);
+    margin-bottom:8px;display:block;letter-spacing:.5px;}
+  input[type=range]{-webkit-appearance:none;width:100%;height:10px;background:var(--bg);
+    border:2px solid var(--line);outline:none;cursor:pointer;}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;
+    background:var(--fx);border:2px solid var(--shadow);cursor:pointer;}
+  input[type=range]::-moz-range-thumb{width:18px;height:18px;background:var(--fx);
+    border:2px solid var(--shadow);cursor:pointer;border-radius:0;}
+  .val{font-family:"Press Start 2P",monospace;font-size:11px;color:var(--fx);}
+  .btn-row{display:flex;flex-wrap:wrap;gap:8px;}
+  button{font-family:"VT323",sans-serif;font-size:18px;cursor:pointer;background:var(--bg);
+    color:var(--ink);border:2px solid var(--line);padding:6px 11px;
+    box-shadow:3px 3px 0 var(--shadow);transition:all .05s;}
+  button:hover{transform:translate(-1px,-1px);}
+  button:active{transform:translate(2px,2px);box-shadow:1px 1px 0 var(--shadow);}
+  button.on{background:var(--fx);color:#fff;border-color:var(--fx);font-weight:bold;}
+  .hint{font-size:18px;color:var(--dim);margin-top:4px;min-height:2.6em;}
+
+  .next{background:linear-gradient(135deg,var(--bg2),#2a140d);border:3px solid var(--fx);
+    box-shadow:8px 8px 0 var(--shadow);padding:26px 22px;margin-top:34px;}
+  .next h3{font-family:"Press Start 2P",monospace;font-size:14px;color:var(--fx);margin:0 0 16px;}
+  .next ul{margin:0;padding-left:4px;list-style:none;}
+  .next li{padding:7px 0;border-bottom:1px dashed var(--line);}
+  .next li::before{content:"▸ ";color:var(--fx);}
+  footer{max-width:780px;margin:0 auto;padding:34px 22px;color:var(--dim);font-size:16px;text-align:center;}
+  .pjump{font-family:"Press Start 2P",monospace;font-size:9px;color:var(--fx);}
+</style>
+</head>
+<body>
+
+<header>
+  <span class="badge">LESSON 08 · ADVANCED</span>
+  <h1 class="title">FX &amp; VFX<span class="cn">进阶 · 特效动画</span></h1>
+  <p class="lede">火、烟、爆炸、火花。又快又脆，靠发光，形状每帧都在剧变。</p>
+</header>
+
+<div class="wrap">
+
+  <!-- 01 -->
+  <section>
+    <div class="kicker">CONCEPT 01 — FAST &amp; PUNCHY</div>
+    <h2>特效的节奏：又快又脆</h2>
+    <p>角色动画追求流畅，特效恰恰相反——<b>要短、要爆、要脆</b>。一个爆炸常常就 8～10 帧，一束受击火花可能只有 3～4 帧。它们用<b>夸张、突然、清晰的大形状</b>砸进你眼睛，转瞬即逝。</p>
+    <p class="dim">下面切换四种特效感受节奏。爆炸有个经典节拍：<b>瞬间闪白 → 火球膨胀 → 碎成烟 → 消散</b>。用单帧按钮一帧帧看，再播放感受那股"脆劲"。</p>
+
+    <!-- ===== LAB ===== -->
+    <div class="lab">
+      <div class="lab-top"><span class="dot"></span><span style="margin-left:38px">FX_LAB.exe</span></div>
+      <div class="lab-body">
+        <div class="stage">
+          <div class="canvas-frame"><canvas id="fx" width="240" height="240"></canvas></div>
+          <div class="stage-label" id="fxLabel">爆炸 · 1/10</div>
+        </div>
+        <div class="controls">
+          <div>
+            <span class="ctrl-label">特效 / EFFECT</span>
+            <div class="btn-row">
+              <button class="fxb on" data-k="explosion">爆炸</button>
+              <button class="fxb" data-k="fire">火焰</button>
+              <button class="fxb" data-k="smoke">烟</button>
+              <button class="fxb" data-k="spark">火花</button>
+            </div>
+          </div>
+          <div>
+            <span class="ctrl-label">播放 / TRANSPORT</span>
+            <div class="btn-row">
+              <button id="playBtn" class="on">▶ 播放</button>
+              <button id="prevBtn">◀ 帧</button>
+              <button id="nextBtn">帧 ▶</button>
+            </div>
+          </div>
+          <div>
+            <span class="ctrl-label">帧率 / FPS <span class="val" id="fpsVal">12</span></span>
+            <input type="range" id="fps" min="3" max="24" value="12" step="1">
+          </div>
+          <div>
+            <span class="ctrl-label">渲染 / RENDER</span>
+            <div class="btn-row"><button id="glowBtn" class="on">✦ 发光 (additive)</button></div>
+          </div>
+          <div class="hint" id="hint">关掉「发光」对比：颜色还在，但那种灼热的辉光没了，特效立刻变"扁"。发光是火光类特效的灵魂。</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 -->
+  <section>
+    <div class="kicker">CONCEPT 02 — LIFECYCLE</div>
+    <h2>生命周期：形状在演变</h2>
+    <p>每种特效都有一条<b>生命周期</b>，它的<b>剪影逐帧改变</b>：爆炸先膨胀到最大再碎裂收缩；烟一路上升、扩散、变淡；火焰在原地不断窜动。<b>先画好每一帧的大形状（剪影），再填里面的热度细节</b>——和第二课"剪影优先"一脉相承。</p>
+    <p class="dim">用单帧按钮走一遍爆炸：你会看到形状从<b>小亮点 → 大火球 → 破碎的烟团 → 淡出</b>。设计特效时，先在纸上画出这几个关键形状的轮廓，再上色，比一上来抠细节高效得多。烟还有个细节：它<b>越升越大、越升越淡</b>，切到「烟」单帧看它的扩散。</p>
+  </section>
+
+  <!-- 03 -->
+  <section>
+    <div class="kicker">CONCEPT 03 — GLOW &amp; HEAT RAMP</div>
+    <h2>发光与热色阶</h2>
+    <p>火光类特效是<b>自发光</b>的，颜色遵循一条<b>热色阶</b>：最热的核心<b>近乎纯白</b>，往外依次是黄 → 橙 → 红 → 暗红 → 烟灰。核心白、边缘暖红冷，这条 ramp 就是火的"配色公式"。</p>
+    <p class="dim"><b>发光（additive / 加色混合）</b>是指多层光叠加时<b>亮度相加、越叠越白</b>，模拟真实的光。在实验室开关 <span class="tag">✦ 发光</span>：开着时火球重叠处烧成白色、边缘有辉光；关掉后只剩平涂的色块，瞬间"扁"掉。引擎里这就是把特效贴图的混合模式设成 Additive 的效果。</p>
+    <div class="callout">实用技巧：特效配色别用太多色，<b>一条 5～6 格的热色阶走天下</b>。需要不同"温度"的火（蓝焰、绿色魔法）时，把这条 ramp 整体换色相即可——这正是第五课色相偏移的延伸用法。</div>
+  </section>
+
+  <!-- 04 -->
+  <section>
+    <div class="kicker">CONCEPT 04 — PARTICLES &amp; SEEDED RANDOM</div>
+    <h2>粒子与"可控随机"</h2>
+    <p>火花、碎屑、烟粒这些<b>粒子</b>四散飞出，是特效"乱中有序"的活力来源。但这里有个第三课就强调过的铁律：<b>随机必须是"种子化"的、可复现的</b>——每个粒子的方向/速度在它诞生时随机一次就<b>固定下来</b>，之后每帧按物理推进。</p>
+    <p class="dim">如果你每帧都重新随机，整团特效就会<b>像素沸腾</b>，闪成一团噪点。正确做法：随机决定"这颗火花往哪飞、飞多快"，然后让它沿轨迹运动、逐渐变暗消失。实验室里的火花和爆炸碎屑都是这么做的——你会看到它们<b>沿固定轨迹飞出</b>，而不是乱抖。补充两招：给快速运动的粒子加一两帧<b>拉伸的拖影（smear）</b>会更有速度感；落地的碎屑可以走<b>抛物线</b>。</p>
+  </section>
+
+  <!-- next -->
+  <div class="next">
+    <h3>▶ NEXT — LESSON 09</h3>
+    <p style="margin-top:0" class="dim">会做角色和特效之后，下一课造<b>场景与氛围</b>：</p>
+    <ul>
+      <li>前景 / 中景 / 背景分层</li>
+      <li>视差滚动（parallax）造空间纵深</li>
+      <li>用光和大气透视营造氛围</li>
+    </ul>
+    <p class="dim" style="margin-bottom:0">说"下一课"继续。</p>
+  </div>
+
+</div>
+
+<footer>
+  <span class="pjump">PIXEL ADVANCED · 08</span><br>
+  开关「发光」对比爆炸——辉光在与不在，特效的档次差一个量级 ✦
+</footer>
+
+<script>
+/* ===== 网格 / 随机 ===== */
+const G=40, SCALE=6;
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);
+  t=t+Math.imul(t^t>>>7,61|t)^t;return ((t^t>>>14)>>>0)/4294967296;};}
+function noise(x,f){let v=Math.sin(x*12.9898+f*78.233)*43758.5453;return v-Math.floor(v);}
+
+/* ===== 颜色 ===== */
+const HEAT=[[0,[42,35,48]],[0.16,[122,42,30]],[0.34,[200,56,26]],[0.52,[255,106,30]],
+  [0.70,[255,174,51]],[0.85,[255,228,135]],[1,[255,253,242]]];
+function lerpC(a,b,t){return [a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t];}
+function heatColor(v){v=Math.max(0,Math.min(1,v));for(let i=1;i<HEAT.length;i++){
+  if(v<=HEAT[i][0]){const t=(v-HEAT[i-1][0])/(HEAT[i][0]-HEAT[i-1][0]);return lerpC(HEAT[i-1][1],HEAT[i][1],t);}}
+  return HEAT[HEAT.length-1][1];}
+function smokeColor(v){return lerpC([34,30,42],[150,146,166],Math.max(0,Math.min(1,v)));}
+function hx(n){return ('0'+Math.max(0,Math.min(255,Math.round(n))).toString(16)).slice(-2);}
+function toHex(c){return '#'+hx(c[0])+hx(c[1])+hx(c[2]);}
+function mixC(a,b,t){return [a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t];}
+
+/* ===== 预生成粒子参数（种子化，循环不沸腾）===== */
+const rng=mulberry32(7);
+const EXPL_BLOBS=[]; for(let i=0;i<8;i++)EXPL_BLOBS.push({a:rng()*6.28,dist:0.4+rng()*0.7,r:3+rng()*2.5});
+const EXPL_DEBRIS=[]; for(let i=0;i<7;i++)EXPL_DEBRIS.push({a:rng()*6.28,spd:0.7+rng()*0.5});
+const SMOKE_BLOBS=[]; for(let i=0;i<6;i++)SMOKE_BLOBS.push({ox:(rng()-0.5)*8,r:3+rng()*2,ph:rng()*6.28,sp:0.7+rng()*0.6});
+
+/* ===== 各特效场函数 → 返回 {h, sm} 或 null ===== */
+function fExplosion(t,x,y,add){
+  const cx=20,cy=23;
+  const expE=1-(1-Math.min(1,t/0.45))**2;
+  let dens=0;
+  for(const b of EXPL_BLOBS){
+    const dist=b.dist*expE*15;
+    const bx=cx+Math.cos(b.a)*dist, by=cy+Math.sin(b.a)*dist - t*5*(t>0.5?1:0.25);
+    const rr=b.r*(0.45+0.95*Math.min(1,t/0.35))*(1-0.4*Math.max(0,t-0.65));
+    const inten=Math.max(0,1-Math.hypot(x-bx,y-by)/Math.max(0.6,rr));
+    if(add)dens+=inten; else dens=Math.max(dens,inten);
+  }
+  // 碎屑火花
+  let spark=0;
+  for(const d of EXPL_DEBRIS){
+    const dd=expE*18*d.spd+ t*4;
+    const sx=cx+Math.cos(d.a)*dd, sy=cy+Math.sin(d.a)*dd - t*4;
+    spark=Math.max(spark,Math.max(0,1-Math.hypot(x-sx,y-sy)/1.3)*(1-t));
+  }
+  const dcen=Math.hypot(x-cx,y-cy);
+  const flash=t<0.16?Math.max(0,1-dcen/9)*(1-t/0.16):0;
+  const shape=(add?Math.min(1.4,dens):dens);
+  if(shape<0.42 && spark<0.4 && flash<0.2) return null;
+  let h=shape*0.5 + (add?Math.max(0,dens-1)*0.5:0) + (0.85-t*0.8);
+  h=Math.max(h, flash*1.3, spark*0.9+0.1);
+  const sm=Math.max(0,Math.min(1,(t-0.42)/0.5));
+  return {h:Math.min(1,h), sm};
+}
+function fFire(t,x,y){
+  const cx=20,base=35,flameH=22,maxW=12;
+  const yf=(base-y)/flameH; if(yf<0||yf>1) return null;
+  const taper=Math.pow(1-yf,0.55);
+  const wig=Math.sin(yf*4+t*Math.PI*2*2)*3.4*yf + Math.sin(yf*7-t*Math.PI*2*3)*1.5*yf;
+  const half=maxW*0.5*taper; const dx=Math.abs(x-(cx+wig));
+  if(dx>half) return null;
+  const fl=noise(x*3.1+y*0.7, Math.round(t*6));
+  if(yf>0.62 && fl>(1-(yf-0.62)/0.38)*0.85) return null;   // 火舌缺口
+  let h=(1-yf)*1.05 - (dx/Math.max(0.5,half))*0.32 + 0.12;
+  return {h:Math.max(0.22,Math.min(1,h)), sm:0};
+}
+function fSmoke(t,x,y,add){
+  const cx=20,startY=31; let dens=0;
+  for(const b of SMOKE_BLOBS){
+    const rise=t*24*b.sp;
+    const bx=cx+b.ox*(0.5+t*0.8)+Math.sin(t*3+b.ph)*2.5;
+    const by=startY-rise;
+    const rr=b.r*(0.7+t*1.8);
+    const inten=Math.max(0,1-Math.hypot(x-bx,y-by)/rr);
+    if(add)dens+=inten; else dens=Math.max(dens,inten);
+  }
+  const shape=add?Math.min(1.2,dens):dens;
+  const thr=0.32+t*0.25;
+  if(shape<thr) return null;
+  const h=Math.min(1,(shape-thr)*1.5 + 0.1 + (1-t)*0.15);
+  const sm=Math.min(1,0.45+t*0.6);
+  return {h, sm};
+}
+function fSpark(t,x,y){
+  const cx=20,cy=20,K=9;
+  const len=(t<0.32? t/0.32 : Math.max(0,1-(t-0.32)/0.68))*16;
+  const thick=1.5*(1-t*0.5);
+  let inten=0;
+  for(let i=0;i<K;i++){
+    const a=i/K*6.28+0.3;
+    const ex=cx+Math.cos(a)*len, ey=cy+Math.sin(a)*len;
+    // 点到线段(中心→端点)
+    const dx=ex-cx,dy=ey-cy,l2=dx*dx+dy*dy||1;
+    let pr=((x-cx)*dx+(y-cy)*dy)/l2; pr=Math.max(0,Math.min(1,pr));
+    const px=cx+pr*dx, py=cy+pr*dy;
+    inten=Math.max(inten,Math.max(0,1-Math.hypot(x-px,y-py)/Math.max(0.5,thick))*(0.4+pr*0.6));
+  }
+  const dcen=Math.hypot(x-cx,y-cy);
+  const flash=t<0.28?Math.max(0,1-dcen/6)*(1-t/0.28):0;
+  const v=Math.max(inten,flash);
+  if(v<0.32) return null;
+  return {h:Math.min(1,0.65+v*0.4)*(1-t*0.25), sm:0};
+}
+const FX={
+  explosion:{f:fExplosion,frames:10,label:'爆炸'},
+  fire:{f:fFire,frames:6,label:'火焰'},
+  smoke:{f:fSmoke,frames:9,label:'烟'},
+  spark:{f:fSpark,frames:6,label:'火花'}
+};
+
+/* ===== 渲染 ===== */
+const fx=document.getElementById('fx'), fctx=fx.getContext('2d');
+fx.width=G*SCALE; fx.height=G*SCALE;
+const off=document.createElement('canvas'); off.width=G; off.height=G;
+const octx=off.getContext('2d');
+let state={key:'explosion',frame:0,playing:true,fps:12,glow:true};
+
+function draw(){
+  const cfg=FX[state.key], t=state.frame/cfg.frames;
+  octx.clearRect(0,0,G,G);
+  for(let y=0;y<G;y++)for(let x=0;x<G;x++){
+    const r=cfg.f(t,x,y,state.glow);
+    if(!r)continue;
+    const col = r.sm>0 ? mixC(heatColor(r.h),smokeColor(r.h),r.sm) : heatColor(r.h);
+    octx.fillStyle=toHex(col); octx.fillRect(x,y,1,1);
+  }
+  fctx.clearRect(0,0,fx.width,fx.height);
+  fctx.imageSmoothingEnabled=false;
+  fctx.globalCompositeOperation='source-over'; fctx.globalAlpha=1;
+  fctx.drawImage(off,0,0,G,G,0,0,fx.width,fx.height);
+  if(state.glow){                       // 辉光：放大柔化的一层叠加
+    fctx.globalCompositeOperation='lighter';
+    fctx.globalAlpha=0.4; fctx.imageSmoothingEnabled=true;
+    fctx.drawImage(off,0,0,G,G,-4,-4,fx.width+8,fx.height+8);
+    fctx.globalCompositeOperation='source-over'; fctx.globalAlpha=1;
+  }
+  document.getElementById('fxLabel').textContent=`${cfg.label} · ${state.frame+1}/${cfg.frames}`;
+}
+
+let last=0,acc=0;
+function loop(ts){
+  if(state.playing){ if(!last)last=ts; acc+=ts-last; last=ts;
+    const step=1000/state.fps; let moved=false;
+    while(acc>=step){state.frame=(state.frame+1)%FX[state.key].frames;acc-=step;moved=true;}
+    if(moved)draw();
+  } else last=0;
+  requestAnimationFrame(loop);
+}
+function pause(){state.playing=false;playBtn.classList.remove('on');playBtn.textContent='▶ 播放';}
+
+document.querySelectorAll('.fxb').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.fxb').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on'); state.key=b.dataset.k; state.frame=0; draw();
+}));
+const playBtn=document.getElementById('playBtn');
+playBtn.addEventListener('click',()=>{state.playing=!state.playing;
+  playBtn.classList.toggle('on',state.playing);playBtn.textContent=state.playing?'⏸ 暂停':'▶ 播放';});
+document.getElementById('prevBtn').addEventListener('click',()=>{pause();
+  state.frame=(state.frame+FX[state.key].frames-1)%FX[state.key].frames;draw();});
+document.getElementById('nextBtn').addEventListener('click',()=>{pause();
+  state.frame=(state.frame+1)%FX[state.key].frames;draw();});
+const fps=document.getElementById('fps');
+fps.addEventListener('input',()=>{state.fps=+fps.value;document.getElementById('fpsVal').textContent=state.fps;});
+const glowBtn=document.getElementById('glowBtn');
+glowBtn.addEventListener('click',()=>{state.glow=!state.glow;glowBtn.classList.toggle('on',state.glow);
+  document.getElementById('hint').textContent=state.glow
+    ?'发光开：核心烧白、边缘有辉光，灼热感拉满。':'发光关：只剩平涂色块，特效立刻变"扁"。';
+  draw();});
+
+draw();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>

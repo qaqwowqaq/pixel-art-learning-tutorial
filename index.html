@@ -1,0 +1,670 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>像素游戏学习教程</title>
+  <meta name="description" content="像素游戏美术与工作流学习教程：从像素基础、动画、瓦片地图，到调色板、材质、VFX、场景、引擎导入和收尾工作流。">
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #090b10;
+      --panel: #10131c;
+      --panel-2: #151927;
+      --ink: #f0ecdf;
+      --muted: #9ca3b5;
+      --line: #2b3144;
+      --accent: #f5b849;
+      --accent-2: #4ac7d8;
+      --danger: #ff5e7c;
+      --shadow: #050609;
+      --radius: 8px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { height: 100%; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans SC", system-ui, sans-serif;
+      line-height: 1.5;
+    }
+
+    a { color: inherit; }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 338px minmax(0, 1fr);
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow: auto;
+      background: var(--panel);
+      border-right: 1px solid var(--line);
+      padding: 24px 18px;
+    }
+
+    .brand {
+      padding: 0 6px 22px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 25px;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    .brand p {
+      margin: 12px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .quick-links {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin: 18px 0 20px;
+    }
+
+    .quick-links a {
+      min-height: 38px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel-2);
+      color: var(--ink);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .quick-links a:hover,
+    .quick-links a:focus-visible {
+      border-color: var(--accent);
+      outline: none;
+    }
+
+    .toc-label {
+      margin: 18px 6px 10px;
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .lesson-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .lesson-link {
+      width: 100%;
+      min-height: 68px;
+      display: grid;
+      grid-template-columns: 38px minmax(0, 1fr);
+      gap: 10px;
+      align-items: center;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: transparent;
+      color: var(--ink);
+      text-align: left;
+      cursor: pointer;
+      font: inherit;
+    }
+
+    .lesson-link:hover,
+    .lesson-link:focus-visible {
+      border-color: var(--accent-2);
+      background: #141927;
+      outline: none;
+    }
+
+    .lesson-link.is-active {
+      border-color: var(--accent);
+      background: #1b1b21;
+      box-shadow: 4px 4px 0 var(--shadow);
+    }
+
+    .lesson-number {
+      width: 34px;
+      height: 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--line);
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 800;
+    }
+
+    .lesson-link strong,
+    .lesson-link small {
+      display: block;
+      overflow-wrap: anywhere;
+    }
+
+    .lesson-link strong {
+      font-size: 14px;
+      line-height: 1.35;
+    }
+
+    .lesson-link small {
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .asset-card {
+      margin-top: 22px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #0c0f17;
+      overflow: hidden;
+    }
+
+    .asset-card img {
+      display: block;
+      width: 100%;
+      height: auto;
+      image-rendering: pixelated;
+      background: #050609;
+    }
+
+    .asset-card p {
+      margin: 0;
+      padding: 10px 12px 12px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .reader {
+      min-width: 0;
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto minmax(0, 1fr);
+    }
+
+    .reader-bar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 18px;
+      background: rgba(9, 11, 16, .96);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .current-title {
+      min-width: 0;
+    }
+
+    .current-title strong,
+    .current-title span {
+      display: block;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .current-title strong {
+      font-size: 15px;
+    }
+
+    .current-title span {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 2px;
+    }
+
+    .reader-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+
+    .reader-actions a,
+    .reader-actions button {
+      min-height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--panel);
+      color: var(--ink);
+      padding: 0 12px;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .reader-actions a:hover,
+    .reader-actions button:hover,
+    .reader-actions a:focus-visible,
+    .reader-actions button:focus-visible {
+      border-color: var(--accent);
+      outline: none;
+    }
+
+    .lesson-frame-wrap {
+      min-height: 0;
+      padding: 18px;
+    }
+
+    .lesson-frame {
+      width: 100%;
+      height: calc(100vh - 75px);
+      min-height: 640px;
+      display: block;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: #0e1018;
+      box-shadow: 8px 8px 0 var(--shadow);
+    }
+
+    @media (max-width: 980px) {
+      .app {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: relative;
+        height: auto;
+        border-right: none;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .lesson-list {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .asset-card {
+        display: none;
+      }
+
+      .reader-bar {
+        position: relative;
+      }
+
+      .lesson-frame {
+        height: 76vh;
+      }
+    }
+
+    @media (max-width: 620px) {
+      .sidebar {
+        padding: 18px 12px;
+      }
+
+      .brand h1 {
+        font-size: 22px;
+      }
+
+      .quick-links,
+      .lesson-list {
+        grid-template-columns: 1fr;
+      }
+
+      .reader-bar {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .reader-actions {
+        justify-content: stretch;
+      }
+
+      .reader-actions a,
+      .reader-actions button {
+        flex: 1 1 auto;
+      }
+
+      .lesson-frame-wrap {
+        padding: 10px;
+      }
+
+      .lesson-frame {
+        min-height: 600px;
+        height: 78vh;
+        box-shadow: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <h1>像素游戏学习教程</h1>
+        <p>11 节交互课件，覆盖像素基础、角色动画、瓦片地图、调色板、特效、场景、像素完美和发布工作流。</p>
+      </div>
+
+      <div class="quick-links" aria-label="资源入口">
+        <a href="tools/pixelart.py">像素化工具</a>
+        <a href="assets/comparison.png">对比图</a>
+      </div>
+
+      <div class="toc-label">课程目录</div>
+      <nav class="lesson-list" aria-label="课程目录">
+
+          <button class="lesson-link is-active" type="button" data-file="pixel-lesson-01.html">
+            <span class="lesson-number">01</span>
+            <span>
+              <strong>像素游戏基础 · 第一课</strong>
+              <small>像素是什么 / 画布分辨率：故意画得很小</small>
+            </span>
+          </button>
+          <button class="lesson-link" type="button" data-file="pixel-lesson-02.html">
+            <span class="lesson-number">02</span>
+            <span>
+              <strong>像素游戏基础 · 第二课</strong>
+              <small>剪影优先 / 轮廓线与锯齿</small>
+            </span>
+          </button>
+          <button class="lesson-link" type="button" data-file="pixel-lesson-03.html">
+            <span class="lesson-number">03</span>
+            <span>
+              <strong>像素游戏基础 · 第三课</strong>
+              <small>帧与精灵表 / 帧率与节奏</small>
+            </span>
+          </button>
+          <button class="lesson-link" type="button" data-file="pixel-lesson-04.html">
+            <span class="lesson-number">04</span>
+            <span>
+              <strong>像素游戏基础 · 第四课（完结）</strong>
+              <small>瓦片与瓦片地图 / 无缝拼接</small>
+            </span>
+          </button>
+          <button class="lesson-link" type="button" data-file="pixel-lesson-05.html">
+            <span class="lesson-number">05</span>
+            <span>
+              <strong>像素游戏进阶 · 第五课</strong>
+              <small>三个旋钮，明度为王 / 色相偏移：让颜色&quot;活&quot;过来</small>
+            </span>
+          </button>
+          <button class="lesson-link" type="button" data-file="pixel-lesson-06.html">
+            <span class="lesson-number">06</span>
+            <span>
+              <strong>像素游戏进阶 · 第六课</strong>
+              <small>不是形状变了，是光变了 / 高光，决定一切</small>
+            </span>
+          </button>
+          <button class="lesson-link" type="button" data-file="pixel-lesson-07.html">
+            <span class="lesson-number">07</span>
+            <span>
+              <strong>像素游戏进阶 · 第七课</strong>
+              <small>走路 = 四个关键姿势的循环 / 重心起伏 = 重量感</small>
+            </span>
+          </button>
+          <button class="lesson-link" type="button" data-file="pixel-lesson-08.html">
+            <span class="lesson-number">08</span>
+            <span>
+              <strong>像素游戏进阶 · 第八课</strong>
+              <small>特效的节奏：又快又脆 / 生命周期：形状在演变</small>
+            </span>
+          </button>
+          <button class="lesson-link" type="button" data-file="pixel-lesson-09.html">
+            <span class="lesson-number">09</span>
+            <span>
+              <strong>像素游戏进阶 · 第九课</strong>
+              <small>场景是一叠有深度的图层 / 视差滚动：用速度差造纵深</small>
+            </span>
+          </button>
+          <button class="lesson-link" type="button" data-file="pixel-lesson-10.html">
+            <span class="lesson-number">10</span>
+            <span>
+              <strong>像素游戏进阶 · 第十课</strong>
+              <small>整数缩放 / 像素完美相机与亚像素抖动</small>
+            </span>
+          </button>
+          <button class="lesson-link" type="button" data-file="pixel-lesson-11.html">
+            <span class="lesson-number">11</span>
+            <span>
+              <strong>像素游戏进阶 · 第十一课（完结）</strong>
+              <small>Aseprite 进阶工作流 / 素材管理与导出</small>
+            </span>
+          </button>
+      </nav>
+
+      <figure class="asset-card">
+        <img src="assets/comparison.png" alt="像素化处理前后对比图">
+        <p>附带的像素化处理效果对比图。</p>
+      </figure>
+    </aside>
+
+    <main class="reader">
+      <div class="reader-bar">
+        <div class="current-title">
+          <strong id="currentTitle">像素游戏基础 · 第一课</strong>
+          <span id="currentSubtitle">像素是什么 / 画布分辨率：故意画得很小 / 整数缩放与&quot;最近邻&quot; / 调色板与索引色</span>
+        </div>
+        <div class="reader-actions">
+          <a id="openLesson" href="lessons/pixel-lesson-01.html" target="_blank" rel="noreferrer">新窗口打开</a>
+          <button type="button" id="copyLink">复制链接</button>
+        </div>
+      </div>
+      <div class="lesson-frame-wrap">
+        <iframe class="lesson-frame" id="lessonFrame" title="课程内容" src="lessons/pixel-lesson-01.html"></iframe>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const lessons = [
+  {
+    "file": "pixel-lesson-01.html",
+    "slug": "pixel-lesson-01",
+    "number": "01",
+    "title": "像素游戏基础 · 第一课",
+    "h1": "PIXEL BASICS 像素游戏 · 第一课",
+    "sections": [
+      "像素是什么",
+      "画布分辨率：故意画得很小",
+      "整数缩放与\"最近邻\"",
+      "调色板与索引色"
+    ]
+  },
+  {
+    "file": "pixel-lesson-02.html",
+    "slug": "pixel-lesson-02",
+    "number": "02",
+    "title": "像素游戏基础 · 第二课",
+    "h1": "VOLUME & LIGHT 像素游戏 · 第二课",
+    "sections": [
+      "剪影优先",
+      "轮廓线与锯齿",
+      "明暗与体积：定一个光源",
+      "抖动：用两种颜色骗出渐变"
+    ]
+  },
+  {
+    "file": "pixel-lesson-03.html",
+    "slug": "pixel-lesson-03",
+    "number": "03",
+    "title": "像素游戏基础 · 第三课",
+    "h1": "MOTION 像素游戏 · 第三课",
+    "sections": [
+      "帧与精灵表",
+      "帧率与节奏",
+      "洋葱皮",
+      "只动该动的：防止「像素沸腾」"
+    ]
+  },
+  {
+    "file": "pixel-lesson-04.html",
+    "slug": "pixel-lesson-04",
+    "number": "04",
+    "title": "像素游戏基础 · 第四课（完结）",
+    "h1": "THE WORLD 像素游戏 · 完结篇",
+    "sections": [
+      "瓦片与瓦片地图",
+      "无缝拼接",
+      "自动连接（auto-tiling）",
+      "把角色放进世界"
+    ]
+  },
+  {
+    "file": "pixel-lesson-05.html",
+    "slug": "pixel-lesson-05",
+    "number": "05",
+    "title": "像素游戏进阶 · 第五课",
+    "h1": "HUE SHIFTING 进阶 · 调色板与色相偏移",
+    "sections": [
+      "三个旋钮，明度为王",
+      "色相偏移：让颜色\"活\"过来",
+      "色阶：可复用的颜色梯队",
+      "有限调色板：约束即风格"
+    ]
+  },
+  {
+    "file": "pixel-lesson-06.html",
+    "slug": "pixel-lesson-06",
+    "number": "06",
+    "title": "像素游戏进阶 · 第六课",
+    "h1": "MATERIALS 进阶 · 材质与高级上色",
+    "sections": [
+      "不是形状变了，是光变了",
+      "高光，决定一切",
+      "对比度与反光",
+      "手工抗锯齿与色阶断层"
+    ]
+  },
+  {
+    "file": "pixel-lesson-07.html",
+    "slug": "pixel-lesson-07",
+    "number": "07",
+    "title": "像素游戏进阶 · 第七课",
+    "h1": "WALK CYCLE 进阶 · 角色行走循环",
+    "sections": [
+      "走路 = 四个关键姿势的循环",
+      "重心起伏 = 重量感",
+      "手脚对侧摆动",
+      "跟随动作，以及走 vs 跑"
+    ]
+  },
+  {
+    "file": "pixel-lesson-08.html",
+    "slug": "pixel-lesson-08",
+    "number": "08",
+    "title": "像素游戏进阶 · 第八课",
+    "h1": "FX & VFX 进阶 · 特效动画",
+    "sections": [
+      "特效的节奏：又快又脆",
+      "生命周期：形状在演变",
+      "发光与热色阶",
+      "粒子与\"可控随机\""
+    ]
+  },
+  {
+    "file": "pixel-lesson-09.html",
+    "slug": "pixel-lesson-09",
+    "number": "09",
+    "title": "像素游戏进阶 · 第九课",
+    "h1": "ENVIRONMENT 进阶 · 场景与氛围",
+    "sections": [
+      "场景是一叠有深度的图层",
+      "视差滚动：用速度差造纵深",
+      "大气透视：越远越淡",
+      "光与氛围：一层色罩定情绪"
+    ]
+  },
+  {
+    "file": "pixel-lesson-10.html",
+    "slug": "pixel-lesson-10",
+    "number": "10",
+    "title": "像素游戏进阶 · 第十课",
+    "h1": "PIXEL PERFECT 进阶 · 进引擎：像素完美",
+    "sections": [
+      "整数缩放",
+      "像素完美相机与亚像素抖动",
+      "导入设置：把过滤关成\"最近邻\"",
+      "精灵图集与自动连接"
+    ]
+  },
+  {
+    "file": "pixel-lesson-11.html",
+    "slug": "pixel-lesson-11",
+    "number": "11",
+    "title": "像素游戏进阶 · 第十一课（完结）",
+    "h1": "SHIP IT 进阶 · 工作流与收尾",
+    "sections": [
+      "Aseprite 进阶工作流",
+      "素材管理与导出",
+      "AI 在流程的哪一环",
+      "版权与心态"
+    ]
+  }
+];
+    const frame = document.querySelector("#lessonFrame");
+    const title = document.querySelector("#currentTitle");
+    const subtitle = document.querySelector("#currentSubtitle");
+    const openLesson = document.querySelector("#openLesson");
+    const copyLink = document.querySelector("#copyLink");
+    const buttons = Array.from(document.querySelectorAll(".lesson-link"));
+
+    function setActive(file, updateHash = true) {
+      const lesson = lessons.find((item) => item.file === file) || lessons[0];
+      if (!lesson) return;
+
+      frame.src = "lessons/" + lesson.file;
+      openLesson.href = "lessons/" + lesson.file;
+      title.textContent = lesson.title;
+      subtitle.textContent = lesson.sections.join(" / ");
+
+      buttons.forEach((button) => {
+        const active = button.dataset.file === lesson.file;
+        button.classList.toggle("is-active", active);
+        button.setAttribute("aria-current", active ? "page" : "false");
+      });
+
+      if (updateHash) {
+        history.replaceState(null, "", "#" + lesson.slug);
+      }
+    }
+
+    buttons.forEach((button) => {
+      button.addEventListener("click", () => setActive(button.dataset.file));
+    });
+
+    copyLink.addEventListener("click", async () => {
+      const lesson = lessons.find((item) => "lessons/" + item.file === frame.getAttribute("src")) || lessons[0];
+      const url = new URL(location.href);
+      url.hash = lesson.slug;
+      try {
+        await navigator.clipboard.writeText(url.toString());
+        copyLink.textContent = "已复制";
+        setTimeout(() => { copyLink.textContent = "复制链接"; }, 1200);
+      } catch {
+        copyLink.textContent = "复制失败";
+        setTimeout(() => { copyLink.textContent = "复制链接"; }, 1200);
+      }
+    });
+
+    const initialSlug = location.hash.replace(/^#/, "");
+    const initialLesson = lessons.find((item) => item.slug === initialSlug);
+    if (initialLesson) setActive(initialLesson.file, false);
+  </script>
+</body>
+</html>
