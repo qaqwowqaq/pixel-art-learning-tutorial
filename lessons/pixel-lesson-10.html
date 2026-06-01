@@ -95,6 +95,39 @@
   .next li::before{content:"▸ ";color:var(--eng);}
   footer{max-width:780px;margin:0 auto;padding:34px 22px;color:var(--dim);font-size:16px;text-align:center;}
   .pjump{font-family:"Press Start 2P",monospace;font-size:9px;color:var(--eng);}
+
+
+  /* Tutorial scrollbar polish */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #3a4054 #0b0d14;
+  }
+
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: #0b0d14;
+    border-left: 1px solid #252b3d;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    min-height: 56px;
+    background: #3a4054;
+    border: 2px solid #0b0d14;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: #4ac7d8;
+  }
+
+  *::-webkit-scrollbar-button {
+    display: none;
+    width: 0;
+    height: 0;
+  }
 </style>
 </head>
 <body>

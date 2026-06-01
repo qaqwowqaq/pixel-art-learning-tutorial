@@ -5,7 +5,6 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const sourceDir = path.join(root, "source");
 const lessonsDir = path.join(root, "lessons");
-const assetsDir = path.join(root, "assets");
 const toolsDir = path.join(root, "tools");
 
 const ensureDir = (dir) => fs.mkdirSync(dir, { recursive: true });
@@ -18,7 +17,6 @@ const copyIfExists = (from, to) => {
 };
 
 ensureDir(lessonsDir);
-ensureDir(assetsDir);
 ensureDir(toolsDir);
 
 if (fs.existsSync(sourceDir)) {
@@ -26,13 +24,53 @@ if (fs.existsSync(sourceDir)) {
     const from = path.join(sourceDir, entry);
     if (/^pixel-lesson-\d+\.html$/i.test(entry)) {
       copyIfExists(from, path.join(lessonsDir, entry));
-    } else if (entry === "comparison.png") {
-      copyIfExists(from, path.join(assetsDir, entry));
     } else if (entry === "pixelart.py") {
       copyIfExists(from, path.join(toolsDir, entry));
     }
   }
 }
+
+const lessonScrollbarCss = `
+
+  /* Tutorial scrollbar polish */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #3a4054 #0b0d14;
+  }
+
+  *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  *::-webkit-scrollbar-track {
+    background: #0b0d14;
+    border-left: 1px solid #252b3d;
+  }
+
+  *::-webkit-scrollbar-thumb {
+    min-height: 56px;
+    background: #3a4054;
+    border: 2px solid #0b0d14;
+  }
+
+  *::-webkit-scrollbar-thumb:hover {
+    background: #4ac7d8;
+  }
+
+  *::-webkit-scrollbar-button {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+`;
+
+const injectLessonScrollbarStyles = (file) => {
+  const lessonPath = path.join(lessonsDir, file);
+  const html = readUtf8(lessonPath);
+  if (html.includes("Tutorial scrollbar polish")) return;
+  fs.writeFileSync(lessonPath, html.replace("</style>", `${lessonScrollbarCss}</style>`), "utf8");
+};
 
 const stripTags = (value) =>
   value
@@ -56,6 +94,8 @@ const lessonFiles = fs
   .readdirSync(lessonsDir)
   .filter((file) => /^pixel-lesson-\d+\.html$/i.test(file))
   .sort((a, b) => a.localeCompare(b, "zh-CN"));
+
+lessonFiles.forEach(injectLessonScrollbarStyles);
 
 const lessons = lessonFiles.map((file, index) => {
   const html = readUtf8(path.join(lessonsDir, file));
@@ -122,9 +162,42 @@ const indexHtml = `<!doctype html>
       color: var(--ink);
       font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans SC", system-ui, sans-serif;
       line-height: 1.5;
+      scrollbar-width: thin;
+      scrollbar-color: #3a4054 #0b0d14;
     }
 
     a { color: inherit; }
+
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: #3a4054 #0b0d14;
+    }
+
+    *::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+
+    *::-webkit-scrollbar-track {
+      background: #0b0d14;
+      border-left: 1px solid var(--line);
+    }
+
+    *::-webkit-scrollbar-thumb {
+      min-height: 56px;
+      background: #3a4054;
+      border: 2px solid #0b0d14;
+    }
+
+    *::-webkit-scrollbar-thumb:hover {
+      background: var(--accent-2);
+    }
+
+    *::-webkit-scrollbar-button {
+      display: none;
+      width: 0;
+      height: 0;
+    }
 
     .app {
       min-height: 100vh;
@@ -162,7 +235,7 @@ const indexHtml = `<!doctype html>
 
     .quick-links {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr;
       gap: 8px;
       margin: 18px 0 20px;
     }
@@ -259,29 +332,6 @@ const indexHtml = `<!doctype html>
       color: var(--muted);
       font-size: 12px;
       line-height: 1.35;
-    }
-
-    .asset-card {
-      margin-top: 22px;
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      background: #0c0f17;
-      overflow: hidden;
-    }
-
-    .asset-card img {
-      display: block;
-      width: 100%;
-      height: auto;
-      image-rendering: pixelated;
-      background: #050609;
-    }
-
-    .asset-card p {
-      margin: 0;
-      padding: 10px 12px 12px;
-      color: var(--muted);
-      font-size: 12px;
     }
 
     .reader {
@@ -391,10 +441,6 @@ const indexHtml = `<!doctype html>
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
-      .asset-card {
-        display: none;
-      }
-
       .reader-bar {
         position: relative;
       }
@@ -413,7 +459,6 @@ const indexHtml = `<!doctype html>
         font-size: 22px;
       }
 
-      .quick-links,
       .lesson-list {
         grid-template-columns: 1fr;
       }
@@ -454,18 +499,12 @@ const indexHtml = `<!doctype html>
 
       <div class="quick-links" aria-label="资源入口">
         <a href="tools/pixelart.py">像素化工具</a>
-        <a href="assets/comparison.png">对比图</a>
       </div>
 
       <div class="toc-label">课程目录</div>
       <nav class="lesson-list" aria-label="课程目录">
 ${lessonCards}
       </nav>
-
-      <figure class="asset-card">
-        <img src="assets/comparison.png" alt="像素化处理前后对比图">
-        <p>附带的像素化处理效果对比图。</p>
-      </figure>
     </aside>
 
     <main class="reader">
@@ -549,7 +588,6 @@ const readme = `# 像素游戏学习教程
 - 本地入口：打开 \`index.html\`
 - 课程原文：\`lessons/pixel-lesson-01.html\` 到 \`lessons/pixel-lesson-11.html\`
 - 像素化工具：\`tools/pixelart.py\`
-- 效果对比图：\`assets/comparison.png\`
 
 ## 课程目录
 
@@ -563,10 +601,8 @@ ${lessons
 .
 ├─ index.html
 ├─ lessons/
-├─ tools/
-│  └─ pixelart.py
-└─ assets/
-   └─ comparison.png
+└─ tools/
+   └─ pixelart.py
 \`\`\`
 
 ## License

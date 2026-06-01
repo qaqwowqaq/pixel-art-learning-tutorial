@@ -7,7 +7,6 @@
 - 本地入口：打开 `index.html`
 - 课程原文：`lessons/pixel-lesson-01.html` 到 `lessons/pixel-lesson-11.html`
 - 像素化工具：`tools/pixelart.py`
-- 效果对比图：`assets/comparison.png`
 
 ## 课程目录
 
@@ -29,10 +28,8 @@
 .
 ├─ index.html
 ├─ lessons/
-├─ tools/
-│  └─ pixelart.py
-└─ assets/
-   └─ comparison.png
+└─ tools/
+   └─ pixelart.py
 ```
 
 ## License

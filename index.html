@@ -31,9 +31,42 @@
       color: var(--ink);
       font-family: "Microsoft YaHei", "PingFang SC", "Noto Sans SC", system-ui, sans-serif;
       line-height: 1.5;
+      scrollbar-width: thin;
+      scrollbar-color: #3a4054 #0b0d14;
     }
 
     a { color: inherit; }
+
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: #3a4054 #0b0d14;
+    }
+
+    *::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+
+    *::-webkit-scrollbar-track {
+      background: #0b0d14;
+      border-left: 1px solid var(--line);
+    }
+
+    *::-webkit-scrollbar-thumb {
+      min-height: 56px;
+      background: #3a4054;
+      border: 2px solid #0b0d14;
+    }
+
+    *::-webkit-scrollbar-thumb:hover {
+      background: var(--accent-2);
+    }
+
+    *::-webkit-scrollbar-button {
+      display: none;
+      width: 0;
+      height: 0;
+    }
 
     .app {
       min-height: 100vh;
@@ -71,7 +104,7 @@
 
     .quick-links {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: 1fr;
       gap: 8px;
       margin: 18px 0 20px;
     }
@@ -168,29 +201,6 @@
       color: var(--muted);
       font-size: 12px;
       line-height: 1.35;
-    }
-
-    .asset-card {
-      margin-top: 22px;
-      border: 1px solid var(--line);
-      border-radius: var(--radius);
-      background: #0c0f17;
-      overflow: hidden;
-    }
-
-    .asset-card img {
-      display: block;
-      width: 100%;
-      height: auto;
-      image-rendering: pixelated;
-      background: #050609;
-    }
-
-    .asset-card p {
-      margin: 0;
-      padding: 10px 12px 12px;
-      color: var(--muted);
-      font-size: 12px;
     }
 
     .reader {
@@ -300,10 +310,6 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
-      .asset-card {
-        display: none;
-      }
-
       .reader-bar {
         position: relative;
       }
@@ -322,7 +328,6 @@
         font-size: 22px;
       }
 
-      .quick-links,
       .lesson-list {
         grid-template-columns: 1fr;
       }
@@ -363,7 +368,6 @@
 
       <div class="quick-links" aria-label="资源入口">
         <a href="tools/pixelart.py">像素化工具</a>
-        <a href="assets/comparison.png">对比图</a>
       </div>
 
       <div class="toc-label">课程目录</div>
@@ -447,11 +451,6 @@
             </span>
           </button>
       </nav>
-
-      <figure class="asset-card">
-        <img src="assets/comparison.png" alt="像素化处理前后对比图">
-        <p>附带的像素化处理效果对比图。</p>
-      </figure>
     </aside>
 
     <main class="reader">
